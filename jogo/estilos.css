@@ -1,0 +1,21 @@
+body {
+    background-color: rgb(22, 32, 36);
+    background-repeat: no-repeat;
+    background-position: top center;
+    background-size: cover;
+    text-decoration-color: white;
+    text-emphasis-color: white;
+    color: white;
+}
+
+.centralizado {
+  display: flex;
+  justify-content: center; /* Horizontal */
+  align-items: center;     /* Vertical */
+}
+
+.container {
+  display: flex; /* Ativa o flexbox */
+  align-items: flex-start; /* Alinha o topo das duas colunas */
+  gap: 20px; /* Espaço entre colunas */
+}
