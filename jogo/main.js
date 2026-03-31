@@ -29,6 +29,7 @@ let logoAntes = 0;
 let segundos = 4.0;
 let frames = 0;
 let frameRate = 31;
+
 function update_screen(agora) {
     const quantoPassou = (agora - logoAntes) / 1000
     
@@ -112,14 +113,14 @@ function desenharTela() {
     // ===== DESENHA NA TELA =====
     gl.uniform1f(uAnguloLoc, angulo);
     
-    for (let i = 0; i < dados.size; i++) {
-        if (dados.objetos[i][0]=='#'){
-            gl.uniform2f(uOffsetLoc, dados.objetos[i][1]*minSize/minMapSize, dados.objetos[i][2]*minSize/minMapSize);
+    for (const entidade of Object.values(dados.entidades)) {
+        if (entidade.tipo === '#'){
+            gl.uniform2f(uOffsetLoc, entidade.pos[0]*minSize/minMapSize, entidade.pos[1]*minSize/minMapSize);
             gl.uniform4f(uColorLoc, 0, 0, 0, 1);
             gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
         }
-        if (dados.objetos[i][0]=='e'){
-            gl.uniform2f(uOffsetLoc, dados.objetos[i][1]*minSize/minMapSize, dados.objetos[i][2]*minSize/minMapSize);
+        if (entidade.tipo === 'e'){
+            gl.uniform2f(uOffsetLoc, entidade.pos[0]*minSize/minMapSize, entidade.pos[1]*minSize/minMapSize);
             gl.uniform4f(uColorLoc, 1, 0, 0, 1);
             gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
         }

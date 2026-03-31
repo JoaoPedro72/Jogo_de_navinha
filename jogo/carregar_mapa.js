@@ -5,35 +5,42 @@ async function lerArquivo() {
 }
 
 let dados = {};
+const inimigos = new Set(['e', 'f', 'g']);
+const causaDano = new Set(['e', 'f', 'g','t']);
+const paredes = new Set(['#']);
+
 export async function gerarMapa() {
     const texto = await lerArquivo();
 
     const linhas = texto.trim().split("\n");
-    
 
-    const [altura, largura] = [linhas.length, linhas[0].length-1];
+    const [altura, largura] = [linhas.length, linhas[0].length - 1];
 
-    let mapa = [];
-    let objetos = [];
-    let size = 0;
-    let jogador = {pos: [0, 0], vidas: 3, velocidade: 0.1, invencivel: false};
-
-    linhas.forEach(linha => mapa.push(linha.split("")));
-
+    let entidades = {};
+    let jogador = { pos: [0, 0], vidas: 3, velocidade: 0.1, invencivel: false };
 
     for (let y = 0; y < altura; y++){
         for (let x = 0; x < largura; x++){
-            if(mapa[y][x] != ' ' && mapa[y][x] != 'p'){
-                objetos.push([mapa[y][x], x, y]);
-                size++;
+
+            const char = linhas[y][x];
+
+            if(char !== ' ' && char !== 'p'){
+                const key = `${x},${y}`;
+
+                entidades[key] = {
+                    tipo: char,
+                    pos: [x, y]
+                };
             }
-            if(mapa[y][x] == 'p'){
+
+            if(char === 'p'){
                 jogador.pos = [x, y];
             }
         }
     }
 
-    dados = { altura, largura, objetos, size, jogador };
+    dados = { altura, largura, entidades, jogador };
+
     return dados;
 }
 
@@ -41,24 +48,52 @@ export function moverInimigos(){
 
 }
 
-function testarColisao(direcao){
-    for (let i = 0; i < dados.size; i++) {
-        if (dados.objetos[i][1] <= dados.jogador.pos[0] + direcao[0] + 1 && dados.objetos[i][1] + 1 > dados.jogador.pos[0] + direcao[0] &&
-            dados.objetos[i][2] <= dados.jogador.pos[1] + direcao[1] + 1 && dados.objetos[i][2] + 1 > dados.jogador.pos[1] + direcao[1] ) {
-            console.log("colidiu com " + dados.objetos[i][0]);
+function colisao(entidade){
+    if(entidade == null) return false;
 
-            if(dados.objetos[i][0] == 'e' && !dados.jogador.invencivel){
-                dados.jogador.vidas--;
-                dados.jogador.invencivel = true;
-                setTimeout(() => {
-                    dados.jogador.invencivel = false;
-                    console.log("invencibilidade acabou");
-                }, 1000);
-            }
+    console.log("colidiu com", entidade.tipo);
 
-            return true;
-        }
+
+
+    if(causaDano.has(entidade.tipo) && !dados.jogador.invencivel){
+        dados.jogador.vidas--;
+        dados.jogador.invencivel = true;
+        
+        setTimeout(() => {
+            dados.jogador.invencivel = false;
+        }, 2000);
     }
+
+    if(paredes.has(entidade.tipo)){
+        return true;
+    }
+
+    return false;
+}
+
+function testarColisao(direcao){
+
+    let ponta1 = [Math.floor(dados.jogador.pos[0] + direcao[0]), Math.floor(dados.jogador.pos[1] + direcao[1])];
+    let ponta2 = [ponta1[0] + 1, ponta1[1] + 1];
+    let ponta3 = [ponta1[0], ponta1[1] + 1];
+    let ponta4 = [ponta1[0] + 1, ponta1[1]];
+
+    let key = `${ponta1[0]},${ponta1[1]}`;
+    let entidade = dados.entidades[key];
+    if(colisao(entidade)) return true;
+
+    key = `${ponta2[0]},${ponta2[1]}`;
+    entidade = dados.entidades[key];
+    if(colisao(entidade)) return true;
+
+    key = `${ponta3[0]},${ponta3[1]}`;
+    entidade = dados.entidades[key];
+    if(colisao(entidade)) return true;
+
+    key = `${ponta4[0]},${ponta4[1]}`;
+    entidade = dados.entidades[key];
+    if(colisao(entidade)) return true;
+
     return false;
 }
 
