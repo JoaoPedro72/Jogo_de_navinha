@@ -1,14 +1,13 @@
-import { gerarMapa } from '../map/carregar_mapa.js';
+import { gerarMapa } from '../jogo/carregar_mapa.js';
+import { moverJogador } from '../jogo/carregar_mapa.js';
 
-document.addEventListener('keydown', function(event) {
-    const output = document.getElementById('output');
-    
-    // Get key information
-    const key = event.key; // e.g., "Enter", "a", "Shift"
-    const code = event.code; // e.g., "KeyA", "Enter", "ShiftLeft"
+const teclas = {};
+window.addEventListener("keydown", (e) => {
+    teclas[e.key] = true;
+});
 
-    if (key === 'a') {
-    }
+window.addEventListener("keyup", (e) => {
+    teclas[e.key] = false;
 });
 
 function getMousePos(canvas, evt) {
@@ -27,13 +26,28 @@ function getMousePos(canvas, evt) {
 }
 
 let logoAntes = 0;
+let segundos = 4.0;
+let frames = 0;
+let frameRate = 31;
 function update_screen(agora) {
     const quantoPassou = (agora - logoAntes) / 1000
-    logoAntes = agora
-
     
+    if(quantoPassou > 1/frameRate){
+        logoAntes = agora
 
-    desenharTela();
+        moverJogador(teclas);
+        console.log(dados.jogador.vidas);
+
+        frames++;
+        if(agora/1000 > segundos){
+            segundos += 4.0;
+            console.log("FPS: " + frames/4.0);
+            frames = 0;
+        }
+
+        desenharTela();
+    }
+
     requestAnimationFrame(update_screen);
 }
 
@@ -98,15 +112,10 @@ function desenharTela() {
     // ===== DESENHA NA TELA =====
     gl.uniform1f(uAnguloLoc, angulo);
     
-    for (let i = 0; i < dados.objetos.length; i++) {
+    for (let i = 0; i < dados.size; i++) {
         if (dados.objetos[i][0]=='#'){
             gl.uniform2f(uOffsetLoc, dados.objetos[i][1]*minSize/minMapSize, dados.objetos[i][2]*minSize/minMapSize);
             gl.uniform4f(uColorLoc, 0, 0, 0, 1);
-            gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-        }
-        if (dados.objetos[i][0]=='p'){
-            gl.uniform2f(uOffsetLoc, dados.objetos[i][1]*minSize/minMapSize, dados.objetos[i][2]*minSize/minMapSize);
-            gl.uniform4f(uColorLoc, 0, 1, 0, 1);
             gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
         }
         if (dados.objetos[i][0]=='e'){
@@ -116,8 +125,9 @@ function desenharTela() {
         }
     }
 
-
-    
+    gl.uniform2f(uOffsetLoc, dados.jogador.pos[0]*minSize/minMapSize, dados.jogador.pos[1]*minSize/minMapSize);
+    gl.uniform4f(uColorLoc, 0, 1, 0, 1);
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);    
 }
 
 function updateVertices() {
