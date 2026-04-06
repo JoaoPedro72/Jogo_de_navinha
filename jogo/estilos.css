@@ -14,6 +14,13 @@ body {
   align-items: center;     /* Vertical */
 }
 
+.elemento-topo {
+  position: absolute;
+  top: 10px; /* Distância do topo */
+  left: 10px; /* Distância da esquerda */
+  z-index: 10; /* Valor maior = mais à frente */
+}
+
 .container {
   display: flex; /* Ativa o flexbox */
   align-items: flex-start; /* Alinha o topo das duas colunas */

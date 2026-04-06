@@ -6,11 +6,21 @@
 - Sistema de colisão
 - Sistema de vidas
 - Movimentação
+- centralizar canva
+- auto ajustar tamanho do canva
+
+- Sistema de tiro
+- Remoção de inimigos
+- Movimentação basica do inimigos
+- Rasante
+- sistema de pontos
+
+- pause
 
 ## O que fazer
 - Comentar o código
-- sentralizar canva
-- auto ajustar tamanho do canva
+
+- Interface (mostrar pontos e menu quando pausa)
 - Menu Inicial
 - Tela Game Over
 - Criar Texturas para 2 inimigos
@@ -20,11 +30,6 @@
   
 - Deixar menos variaveis globais deixando o código mais modular e enxuto
 - Seletor direto ou indireto de fases
-- Sistema de tiro
-- Remoção de inimigos
-- Movimentação basica do inimigos
-- Rasante
-- sistema de pontos
 
 ## O que esta na fila para adicionar
 - Atualizar ReadMe conforme o que o professor pediu
@@ -32,8 +37,9 @@
 - salvar pontuação
 - fases procedurais
 - animações
-- pause
 - Tela cheia
+
+- separar as funções de Gerar Mapa das funções de logica do jogo
 
 - Trailer
 - Efeitos sonoros

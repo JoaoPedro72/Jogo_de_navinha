@@ -1,9 +1,11 @@
 import { gerarMapa } from '../jogo/carregar_mapa.js';
 import { moverJogador } from '../jogo/carregar_mapa.js';
+import { moverEntidades } from '../jogo/carregar_mapa.js';
 
 const teclas = {};
 window.addEventListener("keydown", (e) => {
     teclas[e.key] = true;
+    console.log(teclas);
 });
 
 window.addEventListener("keyup", (e) => {
@@ -29,6 +31,8 @@ let logoAntes = 0;
 let segundos = 4.0;
 let frames = 0;
 let frameRate = 31;
+let pause = false;
+let toglePause = false;
 
 function update_screen(agora) {
     const quantoPassou = (agora - logoAntes) / 1000
@@ -36,8 +40,18 @@ function update_screen(agora) {
     if(quantoPassou > 1/frameRate){
         logoAntes = agora
 
-        moverJogador(teclas);
-        console.log(dados.jogador.vidas);
+        if(teclas.Escape && !toglePause) {
+            pause = !pause;
+            toglePause = true;
+        } else if (!teclas.Escape) {
+            toglePause = false;
+        }
+
+        if(!pause){
+            moverJogador(teclas, dados.jogador);
+            console.log(dados.jogador.vidas);
+            moverEntidades(dados.entidades);
+        }
 
         frames++;
         if(agora/1000 > segundos){
@@ -124,6 +138,16 @@ function desenharTela() {
             gl.uniform4f(uColorLoc, 1, 0, 0, 1);
             gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
         }
+        if (entidade.tipo === 'f'){
+            gl.uniform2f(uOffsetLoc, entidade.pos[0]*minSize/minMapSize, entidade.pos[1]*minSize/minMapSize);
+            gl.uniform4f(uColorLoc, 1, 0, 0.5, 1);
+            gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+        }
+        if (entidade.tipo === 't'){
+            gl.uniform2f(uOffsetLoc, entidade.pos[0]*minSize/minMapSize, entidade.pos[1]*minSize/minMapSize);
+            gl.uniform4f(uColorLoc, 0, 0, 1, 1);
+            gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+        }
     }
 
     gl.uniform2f(uOffsetLoc, dados.jogador.pos[0]*minSize/minMapSize, dados.jogador.pos[1]*minSize/minMapSize);
@@ -178,7 +202,8 @@ async function main(){
     // Set the redimensionamento uniform
     gl.uniform2fv(uRedimensionamentoLoc, matrizRedimensionamento);
 
-    
+    canvas.width = minSize/minMapSize * dados.largura;
+    canvas.height = minSize/minMapSize * dados.altura;
     requestAnimationFrame(update_screen);
 }
 
