@@ -8,6 +8,9 @@
 - Movimentação
 - centralizar canva
 - auto ajustar tamanho do canva
+- Criar Texturas para 2 inimigos
+- Criar Textura tiro
+- Criar Textura Jogador
 
 - Sistema de tiro
 - Remoção de inimigos
@@ -23,9 +26,7 @@
 - Interface (mostrar pontos e menu quando pausa)
 - Menu Inicial
 - Tela Game Over
-- Criar Texturas para 2 inimigos
-- Criar Textura tiro
-- Criar Textura Jogador
+
 - Fundo
   
 - Deixar menos variaveis globais deixando o código mais modular e enxuto

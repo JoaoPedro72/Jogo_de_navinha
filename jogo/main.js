@@ -118,7 +118,7 @@ async function initShaders(){
 
 function desenharTela() {
     // ===== LIMPA TELA =====
-    gl.clearColor(1, 1, 1, 1);
+    gl.clearColor(0, 0, 0, 1);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     // ativa o VAO antes de desenhar
@@ -128,30 +128,15 @@ function desenharTela() {
     gl.uniform1f(uAnguloLoc, angulo);
     
     for (const entidade of Object.values(dados.entidades)) {
-        if (entidade.tipo === '#'){
-            gl.uniform2f(uOffsetLoc, entidade.pos[0]*minSize/minMapSize, entidade.pos[1]*minSize/minMapSize);
-            gl.uniform4f(uColorLoc, 0, 0, 0, 1);
-            gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-        }
-        if (entidade.tipo === 'e'){
-            gl.uniform2f(uOffsetLoc, entidade.pos[0]*minSize/minMapSize, entidade.pos[1]*minSize/minMapSize);
-            gl.uniform4f(uColorLoc, 1, 0, 0, 1);
-            gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-        }
-        if (entidade.tipo === 'f'){
-            gl.uniform2f(uOffsetLoc, entidade.pos[0]*minSize/minMapSize, entidade.pos[1]*minSize/minMapSize);
-            gl.uniform4f(uColorLoc, 1, 0, 0.5, 1);
-            gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-        }
-        if (entidade.tipo === 't'){
-            gl.uniform2f(uOffsetLoc, entidade.pos[0]*minSize/minMapSize, entidade.pos[1]*minSize/minMapSize);
-            gl.uniform4f(uColorLoc, 0, 0, 1, 1);
-            gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-        }
+        gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, entidade.cordenadasTextura, gl.DYNAMIC_DRAW);
+        gl.uniform2f(uOffsetLoc, entidade.pos[0]*minSize/minMapSize, entidade.pos[1]*minSize/minMapSize);
+        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
     }
 
     gl.uniform2f(uOffsetLoc, dados.jogador.pos[0]*minSize/minMapSize, dados.jogador.pos[1]*minSize/minMapSize);
-    gl.uniform4f(uColorLoc, 0, 1, 0, 1);
+    gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, dados.jogador.cordenadasTextura, gl.DYNAMIC_DRAW);
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);    
 }
 
@@ -167,13 +152,63 @@ function updateVertices() {
     gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 }
 
+function carregarTextura(){
+    textura = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, textura);
+
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+
+    // placeholder (evita bug enquanto carrega)
+    gl.texImage2D(
+    gl.TEXTURE_2D,
+    0,
+    gl.RGBA,
+    1,
+    1,
+    0,
+    gl.RGBA,
+    gl.UNSIGNED_BYTE,
+    new Uint8Array([255, 255, 255, 255])
+    );
+
+    const imagem = new Image();
+    imagem.src = "sprites/spritesheet.png";
+
+    imagem.onload = () => {
+        gl.bindTexture(gl.TEXTURE_2D, textura);
+
+        gl.texImage2D(
+            gl.TEXTURE_2D,
+            0,
+            gl.RGBA,
+            gl.RGBA,
+            gl.UNSIGNED_BYTE,
+            imagem
+        );
+
+        // 👇 ESSENCIAL PRA NÃO BORRAR
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+        gl.generateMipmap(gl.TEXTURE_2D);
+    };
+}
+
 async function main(){
     const program = await initShaders();
+    carregarTextura();
+    
     const positionLoc = gl.getAttribLocation(program, 'position');
 
     gl.viewport(0, 0, canvas.width, canvas.height);
 
     dados = await gerarMapa();
+
+    const uTextureLoc = gl.getUniformLocation(program, "uTexture");
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, textura);
+    gl.uniform1i(uTextureLoc, 0);
 
     // ====== VAO ======
     buffer = gl.createBuffer();
@@ -187,6 +222,20 @@ async function main(){
 
     gl.enableVertexAttribArray(positionLoc);
     gl.vertexAttribPointer(positionLoc, 3, gl.FLOAT, false, 0, 0);
+
+    uvBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
+
+    gl.bufferData(gl.ARRAY_BUFFER, dados.jogador.cordenadasTextura, gl.STATIC_DRAW);
+
+    const uvLoc = gl.getAttribLocation(program, "uv");
+    gl.enableVertexAttribArray(uvLoc);
+    gl.vertexAttribPointer(uvLoc, 2, gl.FLOAT, false, 0, 0);
+
+
+    //Habilita o blending para lidar com transparências
+    gl.enable(gl.BLEND)
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
     // ======     ======
 
     // ====== unbind ======
@@ -217,6 +266,8 @@ let dados;
 let minSize = Math.min(canvas.width, canvas.height);
 let minMapSize;
 let angulo = 0;
+let textura;
+let uvBuffer;
 
 const posicao = [];
 const mapaSize = [];

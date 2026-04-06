@@ -2,7 +2,7 @@ import { contruirEntidade } from "./entidade.js";
 
 
 async function lerArquivo() {
-    const response = await fetch("map2.txt");
+    const response = await fetch("map.txt");
     const texto = await response.text();
     return texto;
 }
