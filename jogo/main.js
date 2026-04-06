@@ -172,7 +172,7 @@ function carregarTextura(){
     );
 
     const imagem = new Image();
-    imagem.src = "sprites/spritesheet.png";
+    imagem.src = "sprites/SpriteSheet.png";
 
     imagem.onload = () => {
         gl.bindTexture(gl.TEXTURE_2D, textura);
