@@ -50,3 +50,10 @@
 - Power-ups
 - Controle via mouse
 - 
+
+## Bugs
+- a tela quando passada para o Github não esta redimensionando corretamente!!
+
+
+
+[https://joaopedro72.github.io/Jogo_de_navinha/](https://joaopedro72.github.io/Jogo_de_navinha/TelaInicial.html)
