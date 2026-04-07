@@ -120,8 +120,13 @@ function desenharTela() {
     gl.clearColor(0, 0, 0, 1);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    // ativa o VAO antes de desenhar
-    gl.bindVertexArray(vao);
+    // ⭐ desenha fundo primeiro
+    desenharFundo();
+
+    // ⭐ volta pro shader do jogo
+    gl.useProgram(program);
+
+    gl.bindVertexArray(vao);;
 
     // ===== DESENHA NA TELA =====
     gl.uniform1f(uAnguloLoc, angulo);
@@ -195,7 +200,8 @@ function carregarTextura(){
 }
 
 async function main(){
-    const program = await initShaders();
+    program = await initShaders();
+    await initBackground();
     carregarTextura();
     
     const positionLoc = gl.getAttribLocation(program, 'position');
@@ -257,6 +263,60 @@ async function main(){
     requestAnimationFrame(update_screen);
 }
 
+async function initBackground() {
+    const vs = await carregarShader("shaders/bg_vertex.glsl");
+    const fs = await carregarShader("shaders/bg_fragment.glsl");
+
+    const vShader = gl.createShader(gl.VERTEX_SHADER);
+    gl.shaderSource(vShader, vs);
+    gl.compileShader(vShader);
+
+    const fShader = gl.createShader(gl.FRAGMENT_SHADER);
+    gl.shaderSource(fShader, fs);
+    gl.compileShader(fShader);
+
+    bgProgram = gl.createProgram();
+    gl.attachShader(bgProgram, vShader);
+    gl.attachShader(bgProgram, fShader);
+    gl.linkProgram(bgProgram);
+
+    // quad tela inteira
+    const vertices = new Float32Array([
+        -1, -1,
+         1, -1,
+        -1,  1,
+         1,  1,
+    ]);
+
+    bgVao = gl.createVertexArray();
+    gl.bindVertexArray(bgVao);
+
+    const buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+    const loc = gl.getAttribLocation(bgProgram, "a_position");
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+    uTimeLocBg = gl.getUniformLocation(bgProgram, "u_time");
+    uResLocBg = gl.getUniformLocation(bgProgram, "u_resolution");
+
+    gl.bindVertexArray(null);
+}
+
+function desenharFundo() {
+    gl.useProgram(bgProgram);
+    gl.bindVertexArray(bgVao);
+
+    gl.uniform1f(uTimeLocBg, performance.now() / 1000);
+    gl.uniform2f(uResLocBg, canvas.width, canvas.height);
+
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+    gl.bindVertexArray(null);
+}
+
 let buffer; 
 let vao;
 let uOffsetLoc;
@@ -270,6 +330,12 @@ let minMapSize;
 let angulo = 0;
 let textura;
 let uvBuffer;
+
+let bgProgram;
+let program;
+let bgVao;
+let uTimeLocBg;
+let uResLocBg;
 
 const posicao = [];
 const mapaSize = [];

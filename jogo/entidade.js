@@ -112,7 +112,7 @@ class Jogador extends Entidade {
         }else if(!this.invencivel){
             if(this.textura==0) this.textura =1;
             else this.textura = 0;
-            this.offSetTextura(textura,4);
+            this.offSetTextura(this.textura,4);
         }
     }
     sofrerDano(){
