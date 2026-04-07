@@ -45,22 +45,31 @@ export async function gerarMapa() {
 }
 
 function movimentoTiro(tiro){
-    if(Math.abs(tiro.alvo[1]-tiro.pos[1]) > 0.5) tiro.pos[1] += tiro.vel * (tiro.alvo[1] - tiro.pos[1]) / Math.hypot(tiro.alvo[0] - tiro.pos[0], tiro.alvo[1] - tiro.pos[1]);
-    if(Math.abs(tiro.alvo[0]-tiro.pos[0]) > 0.5) tiro.pos[0] += tiro.vel * (tiro.alvo[0] - tiro.pos[0]) / Math.hypot(tiro.alvo[0] - tiro.pos[0], tiro.alvo[1] - tiro.pos[1]);
-    else if (Math.abs(tiro.alvo[1]-tiro.pos[1]) <= 0.5) {
+    // movimento baseado em ângulo
+    tiro.pos[0] += Math.cos(-tiro.angulo+Math.PI/2) * tiro.vel;
+    tiro.pos[1] += Math.sin(-tiro.angulo+Math.PI/2) * tiro.vel;
+
+    // remove se sair da tela
+    if (
+        tiro.pos[0] < -1 || tiro.pos[0] > dados.largura + 1 ||
+        tiro.pos[1] < -1 || tiro.pos[1] > dados.altura + 1
+    ){
         delete dados.entidades[tiro.id];
+        return;
     }
 
-    for(const entidade of Object.values(dados.entidades)){
-        if(inimigos.has(entidade.tipo) && colisao(entidade, tiro)){
-            if(entidade.vidas > 0){
+    // colisão com inimigos
+    for (const entidade of Object.values(dados.entidades)) {
+        if (inimigos.has(entidade.tipo) && colisao(entidade, tiro)) {
+            if (entidade.vidas > 0) {
                 entidade.vidas -= 1;
-                delete dados.entidades[tiro.id];
-                return;
             }
+
+            delete dados.entidades[tiro.id];
+            return;
         }
     }
-}
+}    
 
 // Função de movimento das entidades, recebe o objeto de entidades e atualiza a posição de cada uma de acordo com seu tipo
 export function moverEntidades(entidades){
@@ -113,7 +122,15 @@ function ColisaoPlayerMovendo(direcao, jogador){
 
 // Função para gerar um tiro, cria um novo objeto de tiro e adiciona ao objeto de entidades
 function gerarTiro(){
-    dados.entidades[id] = contruirEntidade(id, "t", [dados.jogador.pos[0], dados.jogador.pos[1]], 0, null, null, [dados.jogador.pos[0], dados.altura]);
+    dados.entidades[id] = contruirEntidade(
+        id,
+        "t",
+        [dados.jogador.pos[0], dados.jogador.pos[1]],
+        0,
+        null,
+        dados.jogador,
+        null
+    );
     id ++;
 }
 

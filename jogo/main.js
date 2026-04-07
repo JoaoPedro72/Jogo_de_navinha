@@ -115,34 +115,44 @@ async function initShaders(){
 }
 
 function desenharTela() {
-    gl.uniform2f(uCentroLoc, minSize/minMapSize/2, minSize/minMapSize/2);
-    // ===== LIMPA TELA =====
+    gl.uniform2f(uCentroLoc, minSize / minMapSize / 2, minSize / minMapSize / 2);
+
     gl.clearColor(0, 0, 0, 1);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    // ⭐ desenha fundo primeiro
     desenharFundo();
 
-    // ⭐ volta pro shader do jogo
     gl.useProgram(program);
+    gl.bindVertexArray(vao);
 
-    gl.bindVertexArray(vao);;
-
-    // ===== DESENHA NA TELA =====
-    gl.uniform1f(uAnguloLoc, angulo);
-    
+    // ===== ENTIDADES =====
     for (const entidade of Object.values(dados.entidades)) {
         gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, entidade.cordenadasTextura, gl.DYNAMIC_DRAW);
-        gl.uniform2f(uOffsetLoc, entidade.pos[0]*minSize/minMapSize, entidade.pos[1]*minSize/minMapSize);
+
+        gl.uniform1f(uAnguloLoc, entidade.angulo ?? 0);
+
+        gl.uniform2f(
+            uOffsetLoc,
+            entidade.pos[0] * minSize / minMapSize,
+            entidade.pos[1] * minSize / minMapSize
+        );
+
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
     }
 
-    gl.uniform1f(uAnguloLoc, dados.jogador.angulo);
-    gl.uniform2f(uOffsetLoc, dados.jogador.pos[0]*minSize/minMapSize, dados.jogador.pos[1]*minSize/minMapSize);
+    // ===== JOGADOR =====
     gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, dados.jogador.cordenadasTextura, gl.DYNAMIC_DRAW);
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);    
+
+    gl.uniform1f(uAnguloLoc, dados.jogador.angulo);
+    gl.uniform2f(
+        uOffsetLoc,
+        dados.jogador.pos[0] * minSize / minMapSize,
+        dados.jogador.pos[1] * minSize / minMapSize
+    );
+
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 }
 
 function updateVertices() {
