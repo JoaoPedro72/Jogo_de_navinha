@@ -127,6 +127,9 @@ function desenharTela() {
     gl.uniform1f(uAnguloLoc, angulo);
     
     for (const entidade of Object.values(dados.entidades)) {
+        if(entidade.angulo==null)gl.uniform1f(uAnguloLoc, 0);
+        else gl.uniform1f(uAnguloLoc, entidade.angulo);
+
         gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, entidade.cordenadasTextura, gl.DYNAMIC_DRAW);
         gl.uniform2f(uOffsetLoc, entidade.pos[0]*minSize/minMapSize, entidade.pos[1]*minSize/minMapSize);
@@ -202,7 +205,7 @@ async function main(){
 
     gl.viewport(0, 0, canvas.width, canvas.height);
 
-    dados = await gerarMapa();
+    dados = await gerarMapa(1);
 
     const uTextureLoc = gl.getUniformLocation(program, "uTexture");
 

@@ -1,20 +1,44 @@
 import { contruirEntidade } from "./entidade.js";
 
 
-async function lerArquivo() {
-    const response = await fetch("map.txt");
+async function lerArquivo(arquivo) {
+    const response = await fetch(arquivo);
     const texto = await response.text();
     return texto;
 }
 
 let dados = {};
 let id = 0;
-const inimigos = new Set(['e', 'f', 'g']);
-const causaDano = new Set(['e', 'f', 'g']);
+let texto;
+const inimigos = new Set(['e', 'f', 'g', 'h', "tiroInimigo"]);
+const causaDano = new Set(['e', 'f', 'g', 'h', "tiroInimigo"]);
 const paredes = new Set(['#', 'v']);
 
-export async function gerarMapa() {
-    const texto = await lerArquivo();
+export async function gerarMapa(numerofase) {
+    let fase = "fases/mapateste.txt"
+
+    switch(numerofase){
+        case 1:
+            fase = "fases/1.txt";
+            break;
+        case 2:
+            fase = "fases/2.txt";
+            break;
+        case 3:
+            fase = "fases/3.txt";
+            break;
+        case 4:
+            fase = "fases/4.txt";
+            break;
+        case 5:
+            fase = "fases/5.txt";
+            break;
+        default:
+            fase = "fases/mapateste.txt";
+            break;
+    }
+    
+    texto = await lerArquivo(fase);
 
     const linhas = texto.trim().split("\n");
 
@@ -29,7 +53,7 @@ export async function gerarMapa() {
             const char = linhas[y][x];
 
             if(char != 'p' && char != ' '){
-                entidades[id] = contruirEntidade(id, char, [x, y], largura, altura, jogador);
+                entidades[id] = contruirEntidade(id, char, [x, y], largura, altura, jogador, [0,0], entidades);
                 id ++;
             }
 
