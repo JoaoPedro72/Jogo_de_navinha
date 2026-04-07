@@ -5,6 +5,7 @@ in vec2 uv;
 uniform vec2 uRedimensionamento;
 uniform vec2 uOffset;
 uniform float angulo;
+uniform vec2 uCentro; // 👈 novo
 
 out vec2 vUV;
 
@@ -17,8 +18,13 @@ void main() {
         s,  c
     );
 
-    vec2 pos = ((rot * position) + uOffset) * uRedimensionamento - 1.0;
+    // Move para origem → rotaciona → volta
+    vec2 pos = position - uCentro;
+    pos = rot * pos;
+    pos = pos + uCentro;
 
-    vUV = uv; // passa pro fragment
+    pos = (pos + uOffset) * uRedimensionamento - 1.0;
+
+    vUV = uv;
     gl_Position = vec4(pos, 0.0, 1.0);
 }

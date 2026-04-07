@@ -11,7 +11,7 @@ let dados = {};
 let id = 0;
 const inimigos = new Set(['e', 'f', 'g']);
 const causaDano = new Set(['e', 'f', 'g']);
-const paredes = new Set(['#']);
+const paredes = new Set(['#', 'v']);
 
 export async function gerarMapa() {
     const texto = await lerArquivo();
@@ -53,30 +53,31 @@ function movimentoTiro(tiro){
 
     for(const entidade of Object.values(dados.entidades)){
         if(inimigos.has(entidade.tipo) && colisao(entidade, tiro)){
-            dados.jogador.pontos += entidade.pontos;
-            delete dados.entidades[entidade.id];
-            delete dados.entidades[tiro.id];
-            return;
+            if(entidade.vidas > 0){
+                entidade.vidas -= 1;
+                delete dados.entidades[tiro.id];
+                return;
+            }
         }
     }
 }
 
 // Função de movimento das entidades, recebe o objeto de entidades e atualiza a posição de cada uma de acordo com seu tipo
 export function moverEntidades(entidades){
+    dados.jogador.tick();
     for(const entidade of Object.values(entidades)){
-
-        if(inimigos.has(entidade.tipo)) entidade.mover();
+        
+        if(inimigos.has(entidade.tipo)) entidade.tick();
         
         if(entidade.tipo == 't') movimentoTiro(entidade);
         
         // Vai testar a colisão do jogador com cada entidade
-        if(colisao(entidade, dados.jogador) && causaDano.has(entidade.tipo) && !dados.jogador.invencivel){
-            dados.jogador.vidas -= 1;
-            dados.jogador.invencivel = true;
-            setTimeout(() => {
-                dados.jogador.invencivel = false;
-            }, 2000);
+        if(entidade.vidas > 0 && colisao(entidade, dados.jogador) && causaDano.has(entidade.tipo) && !dados.jogador.invencivel){
+            dados.jogador.sofrerDano();
         }
+
+        if(entidade.tipo == 'v' && dados.jogador.vidas < entidade.vidaRepresenta) delete dados.entidades[entidade.id];
+        if(entidade.morto) delete dados.entidades[entidade.id];
     }
 }
 
@@ -90,7 +91,6 @@ function colisao(entidade1, entidade2){
     if(entidade1 == null || entidade2 == null) return false;
 
     if(Math.abs(entidade1.pos[0]-entidade2.pos[0]) < 1 && Math.abs(entidade1.pos[1]-entidade2.pos[1]) < 1){
-        console.log("colisão");
         return true;
     }
     return false;
@@ -103,7 +103,6 @@ function ColisaoPlayerMovendo(direcao, jogador){
     for(const entidade of Object.values(dados.entidades)){
         if(paredes.has(entidade.tipo)){
             if(Math.abs(entidade.pos[0]-jogador.pos[0]-direcao[0]) < 1 && Math.abs(entidade.pos[1]-jogador.pos[1]-direcao[1]) < 1){
-                console.log("colisão");
                 return true;
             }
         } 
@@ -116,7 +115,6 @@ function ColisaoPlayerMovendo(direcao, jogador){
 function gerarTiro(){
     dados.entidades[id] = contruirEntidade(id, "t", [dados.jogador.pos[0], dados.jogador.pos[1]], 0, null, null, [dados.jogador.pos[0], dados.altura]);
     id ++;
-    console.log("tiro gerado");
 }
 
 // Função de movimento do jogador, recebe um objeto com as teclas pressionadas e atualiza a posição do jogador de acordo
@@ -132,28 +130,21 @@ export function moverJogador(tecla, jogador){
         }
     }
 
-    if(tecla.w && tecla.a && !ColisaoPlayerMovendo([-Math.cos(Math.PI/4)*jogador.velocidade, Math.sin(Math.PI/4)*jogador.velocidade], jogador)){
-        jogador.pos[0] -= Math.cos(Math.PI/4)*jogador.velocidade;
-        jogador.pos[1] += Math.sin(Math.PI/4)*jogador.velocidade;
-        return;
-    }
-    if(tecla.w && tecla.d && !ColisaoPlayerMovendo([Math.cos(Math.PI/4)*jogador.velocidade, Math.sin(Math.PI/4)*jogador.velocidade], jogador)){
-        jogador.pos[0] += Math.cos(Math.PI/4)*jogador.velocidade;
-        jogador.pos[1] += Math.sin(Math.PI/4)*jogador.velocidade;
-        return;
-    }
-    if(tecla.s && tecla.a && !ColisaoPlayerMovendo([-Math.cos(Math.PI/4)*jogador.velocidade, -Math.sin(Math.PI/4)*jogador.velocidade], jogador)){
-        jogador.pos[0] -= Math.cos(Math.PI/4)*jogador.velocidade;
-        jogador.pos[1] -= Math.sin(Math.PI/4)*jogador.velocidade;
-        return;
-    }
-    if(tecla.s && tecla.d && !ColisaoPlayerMovendo([Math.cos(Math.PI/4)*jogador.velocidade, -Math.sin(Math.PI/4)*jogador.velocidade], jogador)){
-        jogador.pos[0] += Math.cos(Math.PI/4)*jogador.velocidade;
-        jogador.pos[1] -= Math.sin(Math.PI/4)*jogador.velocidade;
-        return;
-    }
-    if(tecla.w && !ColisaoPlayerMovendo([0, jogador.velocidade], jogador)) jogador.pos[1] += jogador.velocidade;
-    if(tecla.s && !ColisaoPlayerMovendo([0, -jogador.velocidade], jogador)) jogador.pos[1] -= jogador.velocidade;
-    if(tecla.a && !ColisaoPlayerMovendo([-jogador.velocidade, 0], jogador)) jogador.pos[0] -= jogador.velocidade;
-    if(tecla.d && !ColisaoPlayerMovendo([jogador.velocidade, 0], jogador)) jogador.pos[0] += jogador.velocidade;
+    if(tecla.w && tecla.a && !ColisaoPlayerMovendo([-Math.cos(Math.PI/4)*jogador.vel, Math.sin(Math.PI/4)*jogador.vel], jogador))
+        jogador.moverCimaEsquerda();
+    else if(tecla.w && tecla.d && !ColisaoPlayerMovendo([Math.cos(Math.PI/4)*jogador.vel, Math.sin(Math.PI/4)*jogador.vel], jogador))
+        jogador.moverCimaDireita();
+    else if(tecla.s && tecla.a && !ColisaoPlayerMovendo([-Math.cos(Math.PI/4)*jogador.vel, -Math.sin(Math.PI/4)*jogador.vel], jogador))
+        jogador.moverBaixoEsquerda();
+    else if(tecla.s && tecla.d && !ColisaoPlayerMovendo([Math.cos(Math.PI/4)*jogador.vel, -Math.sin(Math.PI/4)*jogador.vel], jogador))
+        jogador.moverBaixoDireita();
+    else if(tecla.w && !ColisaoPlayerMovendo([0, jogador.vel], jogador)) 
+        jogador.moverCima();
+    else if(tecla.s && !ColisaoPlayerMovendo([0, -jogador.vel], jogador)) 
+        jogador.moverBaixo();
+    else if(tecla.a && !ColisaoPlayerMovendo([-jogador.vel, 0], jogador)) 
+        jogador.moverEsquerda();
+    else if(tecla.d && !ColisaoPlayerMovendo([jogador.vel, 0], jogador)) 
+        jogador.moverDireita();
+    else jogador.parado();
 }

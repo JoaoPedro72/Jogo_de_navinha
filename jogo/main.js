@@ -5,7 +5,6 @@ import { moverEntidades } from '../jogo/carregar_mapa.js';
 const teclas = {};
 window.addEventListener("keydown", (e) => {
     teclas[e.key] = true;
-    console.log(teclas);
 });
 
 window.addEventListener("keyup", (e) => {
@@ -47,10 +46,11 @@ function update_screen(agora) {
             toglePause = false;
         }
 
-        if(!pause){
+        if(!pause && !dados.jogador.morto){
             moverJogador(teclas, dados.jogador);
             console.log(dados.jogador.vidas);
             moverEntidades(dados.entidades);
+            desenharTela();
         }
 
         frames++;
@@ -59,8 +59,6 @@ function update_screen(agora) {
             console.log("FPS: " + frames/4.0);
             frames = 0;
         }
-
-        desenharTela();
     }
 
     requestAnimationFrame(update_screen);
@@ -117,6 +115,7 @@ async function initShaders(){
 }
 
 function desenharTela() {
+    gl.uniform2f(uCentroLoc, minSize/minMapSize/2, minSize/minMapSize/2);
     // ===== LIMPA TELA =====
     gl.clearColor(0, 0, 0, 1);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -134,6 +133,7 @@ function desenharTela() {
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
     }
 
+    gl.uniform1f(uAnguloLoc, dados.jogador.angulo);
     gl.uniform2f(uOffsetLoc, dados.jogador.pos[0]*minSize/minMapSize, dados.jogador.pos[1]*minSize/minMapSize);
     gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, dados.jogador.cordenadasTextura, gl.DYNAMIC_DRAW);
@@ -246,6 +246,7 @@ async function main(){
     uOffsetLoc = gl.getUniformLocation(program, 'uOffset');
     uColorLoc = gl.getUniformLocation(program, 'uColor');
     uRedimensionamentoLoc = gl.getUniformLocation(program, 'uRedimensionamento');
+    uCentroLoc = gl.getUniformLocation(program, "uCentro");
     uAnguloLoc = gl.getUniformLocation(program, 'angulo');
 
     // Set the redimensionamento uniform
@@ -261,6 +262,7 @@ let vao;
 let uOffsetLoc;
 let uColorLoc;
 let uRedimensionamentoLoc;
+let uCentroLoc;
 let uAnguloLoc;
 let dados;
 let minSize = Math.min(canvas.width, canvas.height);
