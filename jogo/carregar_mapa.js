@@ -92,18 +92,21 @@ function movimentoTiro(tiro){
     
     if (tiro.pos[0] < 0 || tiro.pos[0] > dados.largura || tiro.pos[1] > dados.altura || tiro.pos[1] < 2) {
         delete dados.entidades[tiro.id];
+        return;
     }
 
-    for(const entidade of Object.values(dados.entidades)){
-        if(inimigos.has(entidade.tipo) && colisao(entidade, tiro)){
-            if(entidade.vidas > 0){
+    // colisão com inimigos
+    for (const entidade of Object.values(dados.entidades)) {
+        if (inimigos.has(entidade.tipo) && colisao(entidade, tiro)) {
+            if (entidade.vidas > 0) {
                 entidade.vidas -= 1;
-                delete dados.entidades[tiro.id];
-                return;
             }
+
+            delete dados.entidades[tiro.id];
+            return;
         }
     }
-}
+}    
 
 let inimigosRestantes = 1;
 // Função de movimento das entidades, recebe o objeto de entidades e atualiza a posição de cada uma de acordo com seu tipo
@@ -165,7 +168,15 @@ function ColisaoPlayerMovendo(direcao, jogador){
 
 // Função para gerar um tiro, cria um novo objeto de tiro e adiciona ao objeto de entidades
 function gerarTiro(){
-    dados.entidades[id] = contruirEntidade(id, "t", [dados.jogador.pos[0], dados.jogador.pos[1]], 0, null, null, [dados.jogador.pos[0], dados.altura]);
+    dados.entidades[id] = contruirEntidade(
+        id,
+        "t",
+        [dados.jogador.pos[0], dados.jogador.pos[1]],
+        0,
+        null,
+        dados.jogador,
+        null
+    );
     id ++;
 }
 
