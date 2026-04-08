@@ -53,12 +53,12 @@ async function update_screen(agora) {
             moverJogador(teclas, dados.jogador);
             inimigosRestantes = moverEntidades(dados.entidades);
             desenharTela();
-            console.log(inimigosRestantes);
         }
         if(!pause && !dados.jogador.morto && inimigosRestantes == 0){
             fase ++;
             inimigosRestantes = 10;
             pontos = dados.jogador.pontos;
+            pause = true;
             return main();
         }
 
@@ -275,6 +275,9 @@ async function main(){
 
     canvas.width = minSize/minMapSize * dados.largura;
     canvas.height = minSize/minMapSize * dados.altura;
+
+    desenharTela();
+    
     requestAnimationFrame(update_screen);
 }
 

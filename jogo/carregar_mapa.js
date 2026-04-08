@@ -1,4 +1,5 @@
 import { contruirEntidade } from "./entidade.js";
+import { resetviVdaCounter } from "./entidade.js";
 
 
 async function lerArquivo(arquivo) {
@@ -15,6 +16,7 @@ const causaDano = new Set(['e', 'f', 'g', 'h', "tiroInimigo"]);
 const paredes = new Set(['#', 'v']);
 
 export async function gerarMapa(numerofase) {
+    
     let fase = "fases/mapateste.txt"
 
     switch(numerofase){
@@ -42,6 +44,8 @@ export async function gerarMapa(numerofase) {
 
     const linhas = texto.trim().split("\n");
 
+    resetviVdaCounter();
+
     let altura;
     let largura;
     
@@ -68,7 +72,6 @@ export async function gerarMapa(numerofase) {
 
             
             if(char != 'p' && char != ' ' && char != '\n' && char != '\r' && char !== undefined){
-                console.log(char);
                 entidades[id] = contruirEntidade(id, char, [x, y], largura, altura, jogador, [0,0], entidades);
                 id ++;
             }
@@ -85,9 +88,9 @@ export async function gerarMapa(numerofase) {
 }
 
 function movimentoTiro(tiro){
-    if(Math.abs(tiro.alvo[1]-tiro.pos[1]) > 0.5) tiro.pos[1] += tiro.vel * (tiro.alvo[1] - tiro.pos[1]) / Math.hypot(tiro.alvo[0] - tiro.pos[0], tiro.alvo[1] - tiro.pos[1]);
-    if(Math.abs(tiro.alvo[0]-tiro.pos[0]) > 0.5) tiro.pos[0] += tiro.vel * (tiro.alvo[0] - tiro.pos[0]) / Math.hypot(tiro.alvo[0] - tiro.pos[0], tiro.alvo[1] - tiro.pos[1]);
-    else if (Math.abs(tiro.alvo[1]-tiro.pos[1]) <= 0.5) {
+    tiro.mover();
+    
+    if (tiro.pos[0] < 0 || tiro.pos[0] > dados.largura || tiro.pos[1] > dados.altura || tiro.pos[1] < 2) {
         delete dados.entidades[tiro.id];
     }
 

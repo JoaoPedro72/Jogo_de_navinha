@@ -221,10 +221,11 @@ class Tiro extends Entidade {
     constructor(id, pos, vel, alvo) {
         super(id, pos, vel, alvo, 't');
         this.offSetTextura(0, 1);
+        this.direcao = [(this.alvo[0] - this.pos[0]) / Math.hypot(this.alvo[0] - this.pos[0], this.alvo[1] - this.pos[1]) , (this.alvo[1] - this.pos[1]) / Math.hypot(this.alvo[0] - this.pos[0], this.alvo[1] - this.pos[1])];
     }
     mover(){
-        if(Math.abs(this.alvo[1]-this.pos[1]) > 0.5) this.pos[1] += this.vel * (this.alvo[1] - this.pos[1]) / Math.hypot(this.alvo[0] - this.pos[0], this.alvo[1] - this.pos[1]);
-        if(Math.abs(this.alvo[0]-this.pos[0]) > 0.5) this.pos[0] += this.vel * (this.alvo[0] - this.pos[0]) / Math.hypot(this.alvo[0] - this.pos[0], this.alvo[1] - this.pos[1]);
+        this.pos[1] += this.vel * this.direcao[1];
+        this.pos[0] += this.vel * this.direcao[0];
     }
 }
 
@@ -235,15 +236,16 @@ class TiroInimigo extends Entidade {
         this.entidades = entidades;
         this.altura = altura;
         this.largura = largura;
+        this.angulo = Math.atan(alvo[0]/alvo[1]);
     }
     mover(){
-        if(Math.abs(this.alvo[1]-this.pos[1]) > 0.5) this.pos[1] += this.vel * (this.alvo[1] - this.pos[1]) / Math.hypot(this.alvo[0] - this.pos[0], this.alvo[1] - this.pos[1]);
-        if(Math.abs(this.alvo[0]-this.pos[0]) > 0.5) this.pos[0] += this.vel * (this.alvo[0] - this.pos[0]) / Math.hypot(this.alvo[0] - this.pos[0], this.alvo[1] - this.pos[1]);
+        this.pos[0] -= this.vel * Math.sin(this.angulo);
+        this.pos[1] -= this.vel * Math.cos(this.angulo);
         if(this.pos[1] > this.altura+1 || this.pos[1] < 2 || this.pos[0] < -1 || this.pos[0] > this.largura+1) delete this.entidades[this.id];
     }
 }
 
-// A ideia é que esse inimigo realize um avanço seguindo algo como uma senoide avançando e apos sair da tela ele volta para o começo; 
+//Inimigo avanço
 class InimigoF extends Inimigo {
     constructor(id, pos, altura) {
         super(id, pos, 0.5, [1-pos[0], 0], 'f');
@@ -252,7 +254,7 @@ class InimigoF extends Inimigo {
         this.angulo = 0;
         this.pontos = 30;
         this.posInicial = [pos[0], pos[1]];
-        this.offSetTextura(0, 2);
+        this.offSetTextura(2, 2);
         this.tempoDeVoo = 0;
         this.vidas = 2;
     }
@@ -275,13 +277,14 @@ class InimigoF extends Inimigo {
                     this.pos[1] -= this.vel * Math.cos(-this.angulo);
                     this.pos[0] += this.vel * Math.sin(-this.angulo);
                     this.tempoDeVoo ++;
-                    if(this.vidas > 0) this.offSetTextura(1, 2);
-                }else if(this.vidas > 0) this.offSetTextura(0, 2);
+                    if(this.vidas > 0) this.offSetTextura(3, 2);
+                }else if(this.vidas > 0) this.offSetTextura(2, 2);
             }
         } 
     }
 }
 
+//Inimigo Rasante
 class InimigoG extends Inimigo {
     constructor(id, pos, altura, largura, jogador) {
         super(id, pos, 0.5, [1-pos[0], 0], 'g');
@@ -321,6 +324,7 @@ class InimigoG extends Inimigo {
     }
 }
 
+// Inimigo classico
 class InimigoE extends Inimigo {
     constructor(id, pos, largura, jogador) {
         super(id, pos, 0.2, [1-pos[0], 0], 'e');
@@ -363,6 +367,7 @@ class InimigoE extends Inimigo {
     }
 }
 
+//Inimigo Tiro
 class InimigoH extends Inimigo{
     constructor(id, pos, altura, largura, entidades) {
         super(id, pos, 0.2, [1-pos[0], 0], 'g');
@@ -407,7 +412,60 @@ class InimigoH extends Inimigo{
     }
 }
 
+// inimigo mira e atira no jogador
+class InimigoJ extends Inimigo{
+    constructor(id, pos, largura, entidades, jogador) {
+        super(id, pos, 0.2, [1-pos[0], 0], 'g');
+        this.largura = largura;
+        this.tempo = 0;
+        this.angulo = 0;
+        this.pontos = 30;
+        this.offSetTextura(2, 5);
+        this.padrao = 1;
+        this.entidades = entidades;
+        this.jogador = jogador;
+    }
+    mover(){
+        this.tempo ++;
+        if(this.tempo > 30 * 5){
+            if(this.tempo % 30 == 0)this.atirar();
+            this.angulo = Math.atan((this.jogador.pos[0] - this.pos[0])/(this.jogador.pos[1] - this.pos[1]));
+        }
+        if(this.tempo < 30 * 5){
+            if(this.pos[0] <= 2) this.padrao = 1;
+            if(this.pos[0] >= this.largura-2) this.padrao = 0;
+            if(this.padrao == 1) {
+                this.pos[0] += this.vel;
+                this.angulo = -Math.PI/2;
+            }
+            if(this.padrao == 0) {
+                this.pos[0] -= this.vel;
+                this.angulo = Math.PI/2;
+            }
+        }
+        if(this.tempo > 300) this.tempo = 0;
+        
+    }
+    atirar(){
+        let idProcura = 1;
+        while(this.entidades[idProcura] != null) idProcura ++;
+
+        let mira = [];
+        mira[0] = this.jogador.pos[0] - this.pos[0];
+        mira[1] = this.jogador.pos[1] - this.pos[1];
+
+        this.entidades[idProcura] = contruirEntidade(idProcura,"tiroInimigo", [this.pos[0],this.pos[1]], this.largura, this.altura, null, [mira[0], mira[1]], this.entidades);
+    }
+}
+
+
 let vidaCounter = 1;
+
+export function resetviVdaCounter(){
+    console.log(vidaCounter);
+    vidaCounter = 1;
+}
+
 export function contruirEntidade(id, tipo, pos, largura, altura, jogador, alvo, entidades, casa, valor){
     if(tipo === 'p') return new Jogador();
     if(tipo === 'e') return new InimigoE(id, pos, largura, jogador);
@@ -417,6 +475,7 @@ export function contruirEntidade(id, tipo, pos, largura, altura, jogador, alvo, 
     if(tipo === 'g') return new InimigoG(id, pos, altura, largura, jogador);
     if(tipo === 'v') return new Vida(id, pos, vidaCounter++);
     if(tipo === 'h') return new InimigoH(id, pos, altura, largura, entidades);
+    if(tipo === 'j') return new InimigoJ(id, pos, largura, entidades, jogador);
     if(tipo == "tiroInimigo") return new TiroInimigo(id, pos, 0.5, alvo, altura, largura, entidades);
     if(tipo == "numero") return new Pontuacao(id, pos, casa, valor)
 }
