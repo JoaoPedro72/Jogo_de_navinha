@@ -32,8 +32,11 @@ let frames = 0;
 let frameRate = 31;
 let pause = false;
 let toglePause = false;
+let inimigosRestantes = 1;
+let fase = 0;
+let pontos = 0;
 
-function update_screen(agora) {
+async function update_screen(agora) {
     const quantoPassou = (agora - logoAntes) / 1000
     
     if(quantoPassou > 1/frameRate){
@@ -45,13 +48,20 @@ function update_screen(agora) {
         } else if (!teclas.Escape) {
             toglePause = false;
         }
-
-        if(!pause && !dados.jogador.morto){
+        
+        if(!pause && !dados.jogador.morto && inimigosRestantes > 0){
             moverJogador(teclas, dados.jogador);
-            console.log(dados.jogador.vidas);
-            moverEntidades(dados.entidades);
+            inimigosRestantes = moverEntidades(dados.entidades);
             desenharTela();
+            console.log(inimigosRestantes);
         }
+        if(!pause && !dados.jogador.morto && inimigosRestantes == 0){
+            fase ++;
+            inimigosRestantes = 10;
+            pontos = dados.jogador.pontos;
+            return main();
+        }
+
 
         frames++;
         if(agora/1000 > segundos){
@@ -197,7 +207,13 @@ function carregarTextura(){
     };
 }
 
+function reloadMatrizRedimensionamento(){
+    matrizRedimensionamento[0] = 2/canvas.width;
+    matrizRedimensionamento[1] = 2/canvas.height;
+}
+
 async function main(){
+    reloadMatrizRedimensionamento();
     const program = await initShaders();
     carregarTextura();
     
@@ -205,7 +221,9 @@ async function main(){
 
     gl.viewport(0, 0, canvas.width, canvas.height);
 
-    dados = await gerarMapa(1);
+    //dados = {};
+    dados = await gerarMapa(fase);
+    dados.jogador.pontos = pontos;
 
     const uTextureLoc = gl.getUniformLocation(program, "uTexture");
 

@@ -42,17 +42,33 @@ export async function gerarMapa(numerofase) {
 
     const linhas = texto.trim().split("\n");
 
-    const [altura, largura] = [linhas.length, linhas[0].length - 1];
+    let altura;
+    let largura;
+    
+    if(linhas[0][linhas[0].length] == undefined) [altura, largura] = [linhas.length, linhas[0].length - 1];
+    else [altura, largura] = [linhas.length, linhas[0].length];
 
     let entidades = {};
     let jogador = contruirEntidade(null, 'p', null, null, null, null, null);
+
+
+    entidades[id] = contruirEntidade(id, "numero", [1,1], null, null, null, null, null, 1000, 0);
+    id++;
+    entidades[id] = contruirEntidade(id, "numero", [2,1], null, null, null, null, null, 100, 0);
+    id++;
+    entidades[id] = contruirEntidade(id, "numero", [3,1], null, null, null, null, null, 10, 0);
+    id++;
+    entidades[id] = contruirEntidade(id, "numero", [4,1], null, null, null, null, null, 1, 0);
+    id++;
 
     for (let y = 0; y < altura; y++){
         for (let x = 0; x < largura; x++){
 
             const char = linhas[y][x];
 
-            if(char != 'p' && char != ' '){
+            
+            if(char != 'p' && char != ' ' && char != '\n' && char != '\r' && char !== undefined){
+                console.log(char);
                 entidades[id] = contruirEntidade(id, char, [x, y], largura, altura, jogador, [0,0], entidades);
                 id ++;
             }
@@ -86,14 +102,19 @@ function movimentoTiro(tiro){
     }
 }
 
+let inimigosRestantes = 1;
 // Função de movimento das entidades, recebe o objeto de entidades e atualiza a posição de cada uma de acordo com seu tipo
 export function moverEntidades(entidades){
     dados.jogador.tick();
+    inimigosRestantes = 0;
     for(const entidade of Object.values(entidades)){
-        
-        if(inimigos.has(entidade.tipo)) entidade.tick();
+        if(inimigos.has(entidade.tipo)) {
+            inimigosRestantes ++;
+            entidade.tick();
+        }
         
         if(entidade.tipo == 't') movimentoTiro(entidade);
+        if(entidade.tipo == "numero") entidade.calcularValor(dados.jogador.pontos);
         
         // Vai testar a colisão do jogador com cada entidade
         if(entidade.vidas > 0 && colisao(entidade, dados.jogador) && causaDano.has(entidade.tipo) && !dados.jogador.invencivel){
@@ -101,8 +122,12 @@ export function moverEntidades(entidades){
         }
 
         if(entidade.tipo == 'v' && dados.jogador.vidas < entidade.vidaRepresenta) delete dados.entidades[entidade.id];
-        if(entidade.morto) delete dados.entidades[entidade.id];
+        if(entidade.morto) {
+            dados.jogador.pontos += entidade.pontos;
+            delete dados.entidades[entidade.id];
+        }
     }
+    return inimigosRestantes;
 }
 
 
