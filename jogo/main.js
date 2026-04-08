@@ -1,8 +1,12 @@
 import { gerarMapa } from '../jogo/carregar_mapa.js';
 import { moverJogador } from '../jogo/carregar_mapa.js';
 import { moverEntidades } from '../jogo/carregar_mapa.js';
+import { esconderTelaNivel } from "./entidade.js";
+
 
 const teclas = {};
+teclas.tiro = false;
+
 window.addEventListener("keydown", (e) => {
     teclas[e.key] = true;
 });
@@ -38,20 +42,34 @@ let logoAntes = 0;
 let segundos = 4.0;
 let frames = 0;
 let frameRate = 31;
-let pause = false;
+let pause = true;
 let toglePause = false;
 let inimigosRestantes = 1;
-let fase = 0;
+let fase = 3;
 let pontos = 0;
 let mouseTogle = false;
 let mouseON = false;
+let tiroTogle = false;
+let tempo = 0;
 
 async function update_screen(agora) {
     const quantoPassou = (agora - logoAntes) / 1000
     
     if(quantoPassou > 1/frameRate){
         logoAntes = agora;
-        console.log(teclas);
+        tempo ++;
+        if(tempo == 50){
+            esconderTelaNivel(dados.entidades);
+            esconderTelaNivel(dados.entidades);
+            pause = false;
+        }
+        
+        if(teclas.q && !tiroTogle){
+            teclas.tiro = !teclas.tiro;
+            tiroTogle = true;
+        } else if (!teclas.q){
+            tiroTogle = false;
+        }
 
         if(teclas.m && !mouseTogle) {
             mouseON = !mouseON;
@@ -70,8 +88,10 @@ async function update_screen(agora) {
         if(!pause && !dados.jogador.morto && inimigosRestantes > 0){
             moverJogador(teclas, dados.jogador, mouseON, mousePos);
             inimigosRestantes = moverEntidades(dados.entidades);
-            desenharTela();
         }
+
+        desenharTela();
+
         if(!pause && !dados.jogador.morto && inimigosRestantes == 0){
             fase ++;
             inimigosRestantes = 10;
@@ -101,7 +121,7 @@ if (!gl) {
   throw new Error('WebGL2 não suportado');
 }
 
-let mousePos = {x: 0, y:0};
+let mousePos = {x:0, y:0};
 canvas.addEventListener('mousemove', function(event) {
     mousePos = getMousePos(canvas, event);
 });
@@ -247,6 +267,7 @@ function reloadMatrizRedimensionamento(){
 }
 
 async function main(){
+    tempo = 0;
     program = await initShaders();
     await initBackground();
     carregarTextura();

@@ -33,6 +33,15 @@ class Parede {
     }
 }
 
+class texto extends Parede {
+    constructor(id, pos, offSetParede, codColetivo) {
+        super(id, pos);
+        this.tipo = "texto";
+        this.codColetivo = codColetivo;
+        this.offSetTextura(offSetParede[0], offSetParede[1]);
+    }
+}
+
 class Pontuacao extends Parede {
     constructor(id, pos, casa, valor){
         super(id, pos);
@@ -73,7 +82,8 @@ class Entidade {
         this.tipo = tipo;
         this.vidas = 1;
         this.morto = false;
-        this.animationTime =0;
+        this.animationTime = 0;
+        this.pontos = 0;
         this.cordenadasTextura = new Float32Array([
             0.0, 0.0, 
             0.2, 0.0, 
@@ -137,6 +147,7 @@ class Jogador extends Entidade {
             else this.textura = 0;
             this.offSetTextura(this.textura,4);
         }
+        console.log(this.pontos);
         
         let direcao = [(mousePos.x - this.pos[0]) / Math.hypot(mousePos.x - this.pos[0], mousePos.y - this.pos[1]) , (mousePos.y - this.pos[1]) / Math.hypot(mousePos.x - this.pos[0], mousePos.y - this.pos[1])];
 
@@ -439,16 +450,25 @@ class InimigoJ extends Inimigo{
         this.pontos = 30;
         this.offSetTextura(2, 5);
         this.padrao = 1;
+        this.anima = 0;
         this.entidades = entidades;
         this.jogador = jogador;
     }
     mover(){
         this.tempo ++;
         if(this.tempo > 30 * 5){
+            this.offSetTextura(2, 5);
             if(this.tempo % 30 == 0)this.atirar();
             this.angulo = Math.atan((this.jogador.pos[0] - this.pos[0])/(this.jogador.pos[1] - this.pos[1]));
         }
         if(this.tempo < 30 * 5){
+
+            if(this.anima == 0) this.offSetTextura(3, 5);
+            if(this.anima == 2) this.offSetTextura(4, 5);
+
+            this.anima++;
+            if(this.anima==4) this.anima = 0;
+
             if(this.pos[0] <= 2) this.padrao = 1;
             if(this.pos[0] >= this.largura-2) this.padrao = 0;
             if(this.padrao == 1) {
@@ -482,6 +502,40 @@ export function resetviVdaCounter(){
     vidaCounter = 1;
 }
 
+function mostrarTelaNivel(id, entidades, numero, largura, altura){
+
+    entidades[id++] = new texto(id, [largura/2 - 2.5, altura/2 - 1], [0, 7], "nivel");
+    entidades[id++] = new texto(id, [largura/2 - 1.5, altura/2 - 1], [1, 7], "nivel");
+    entidades[id++] = new texto(id, [largura/2 - 0.5, altura/2 - 1], [2, 7], "nivel");
+    entidades[id++] = new texto(id, [largura/2 + 0.5, altura/2 - 1], [3, 7], "nivel");
+
+    entidades[id++] = new texto(id, [largura/2 - 2.5, altura/2 - 0], [0, 8], "nivel");
+    entidades[id++] = new texto(id, [largura/2 - 1.5, altura/2 - 0], [1, 8], "nivel");
+    entidades[id++] = new texto(id, [largura/2 - 0.5, altura/2 - 0], [2, 8], "nivel");
+    entidades[id++] = new texto(id, [largura/2 + 0.5, altura/2 - 0], [3, 8], "nivel");
+    
+    entidades[id++] = new texto(id, [largura/2 + 2, altura/2 - 0.5], [numero, 9], "nivel");
+}
+
+export function esconderTelaNivel(entidades){
+    for (const entidade of Object.values(entidades)) {
+        if(entidade.codColetivo == "nivel") {
+            entidade.pos[0] = -10;
+            delete entidades[entidade.id];
+        }
+    }
+}
+
+function telaDerrota(id, entidades, largura, altura){
+    console.log("derrota");
+    entidades[id++] = new texto(id, [largura/2 - 3, altura/2 - 1], [4, 7], "derrota");
+    entidades[id++] = new texto(id, [largura/2 - 2, altura/2 - 1], [5, 7], "derrota");
+    entidades[id++] = new texto(id, [largura/2 - 1, altura/2 - 1], [6, 7], "derrota");
+    entidades[id++] = new texto(id, [largura/2 - 0, altura/2 - 1], [7, 7], "derrota");
+    entidades[id++] = new texto(id, [largura/2 + 1, altura/2 - 1], [8, 7], "derrota");
+    entidades[id++] = new texto(id, [largura/2 + 2, altura/2 - 1], [9, 7], "derrota");
+}
+
 export function contruirEntidade(id, tipo, pos, largura, altura, jogador, alvo, entidades, casa, valor, angulo){
     if(tipo === 'p') return new Jogador();
     if(tipo === 'e') return new InimigoE(id, pos, largura, jogador);
@@ -493,4 +547,7 @@ export function contruirEntidade(id, tipo, pos, largura, altura, jogador, alvo, 
     if(tipo === 'h') return new InimigoH(id, pos, altura, largura, entidades);
     if(tipo === 'j') return new InimigoJ(id, pos, largura, entidades, jogador);
     if(tipo == "numero") return new Pontuacao(id, pos, casa, valor)
+    if(tipo == "esconderNivel") esconderTelaNivel(entidades);
+    if(tipo == "nivel") mostrarTelaNivel(id,entidades, valor, largura, altura);
+    if(tipo == "derrota") telaDerrota(id, entidades, largura, altura);
 }

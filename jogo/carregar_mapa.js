@@ -11,6 +11,8 @@ async function lerArquivo(arquivo) {
 let dados = {};
 let id = 0;
 let texto;
+let altura;
+let largura;
 const inimigos =  new Set(['e', 'f', 'g', 'h', 'j', "tiroInimigo"]);
 const causaDano = new Set(['e', 'f', 'g', 'h', 'j', "tiroInimigo"]);
 const paredes = new Set(['#', 'v']);
@@ -46,8 +48,7 @@ export async function gerarMapa(numerofase) {
 
     resetviVdaCounter();
 
-    let altura;
-    let largura;
+
     
     if(linhas[0][linhas[0].length] == undefined) [altura, largura] = [linhas.length, linhas[0].length - 1];
     else [altura, largura] = [linhas.length, linhas[0].length];
@@ -83,6 +84,10 @@ export async function gerarMapa(numerofase) {
     }
 
     dados = { altura, largura, entidades, jogador };
+
+    contruirEntidade(id, "esconderNivel",null,null,null,null,null,entidades,null);
+    contruirEntidade(id, "nivel",null,largura,altura,null,null,entidades,null,numerofase);
+    id +=10;
 
     return dados;
 }
@@ -132,6 +137,7 @@ export function moverEntidades(entidades){
             delete dados.entidades[entidade.id];
         }
     }
+    if(dados.jogador.morto) contruirEntidade(id,"derrota", null, largura, altura, null, null, entidades);
     return inimigosRestantes;
 }
 
@@ -186,7 +192,7 @@ function gerarTiro(){
 export function moverJogador(tecla, jogador, mouseON, mousePos){
     if(jogador.ultimoTiro > 0)jogador.ultimoTiro -= 1;
     if(jogador.ultimoTiro <= 0){
-        if(tecla[" "] || tecla[0]) {
+    if(tecla[" "] || tecla[0] || tecla.tiro) {
             gerarTiro();
             jogador.ultimoTiro = jogador.cadenciaDeTiro;
         }
