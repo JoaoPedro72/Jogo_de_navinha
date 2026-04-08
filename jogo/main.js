@@ -11,6 +11,14 @@ window.addEventListener("keyup", (e) => {
     teclas[e.key] = false;
 });
 
+window.addEventListener('mousedown', (e) => {
+    teclas[e.button] = true;
+});
+
+window.addEventListener('mouseup', (e) => {
+    teclas[e.button] = false;
+});
+
 function getMousePos(canvas, evt) {
     const posDisplay = document.getElementById('pos');
     const rect = canvas.getBoundingClientRect();
@@ -35,12 +43,22 @@ let toglePause = false;
 let inimigosRestantes = 1;
 let fase = 0;
 let pontos = 0;
+let mouseTogle = false;
+let mouseON = false;
 
 async function update_screen(agora) {
     const quantoPassou = (agora - logoAntes) / 1000
     
     if(quantoPassou > 1/frameRate){
-        logoAntes = agora
+        logoAntes = agora;
+        console.log(teclas);
+
+        if(teclas.m && !mouseTogle) {
+            mouseON = !mouseON;
+            mouseTogle = true;
+        } else if (!teclas.m) {
+            mouseTogle = false;
+        }
 
         if(teclas.Escape && !toglePause) {
             pause = !pause;
@@ -50,7 +68,7 @@ async function update_screen(agora) {
         }
         
         if(!pause && !dados.jogador.morto && inimigosRestantes > 0){
-            moverJogador(teclas, dados.jogador);
+            moverJogador(teclas, dados.jogador, mouseON, mousePos);
             inimigosRestantes = moverEntidades(dados.entidades);
             desenharTela();
         }
@@ -83,8 +101,9 @@ if (!gl) {
   throw new Error('WebGL2 não suportado');
 }
 
+let mousePos = {x: 0, y:0};
 canvas.addEventListener('mousemove', function(event) {
-    const mousePos = getMousePos(canvas, event);
+    mousePos = getMousePos(canvas, event);
 });
 
 
@@ -135,12 +154,13 @@ function desenharTela() {
     gl.useProgram(program);
     gl.bindVertexArray(vao);
 
+    gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
     // ===== ENTIDADES =====
     for (const entidade of Object.values(dados.entidades)) {
         if(entidade.angulo==null)gl.uniform1f(uAnguloLoc, 0);
         else gl.uniform1f(uAnguloLoc, entidade.angulo);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
+        
         gl.bufferData(gl.ARRAY_BUFFER, entidade.cordenadasTextura, gl.DYNAMIC_DRAW);
 
         gl.uniform1f(uAnguloLoc, entidade.angulo ?? 0);
@@ -155,7 +175,6 @@ function desenharTela() {
     }
 
     // ===== JOGADOR =====
-    gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, dados.jogador.cordenadasTextura, gl.DYNAMIC_DRAW);
 
     gl.uniform1f(uAnguloLoc, dados.jogador.angulo);
@@ -239,6 +258,8 @@ async function main(){
     //dados = {};
     dados = await gerarMapa(fase);
     dados.jogador.pontos = pontos;
+
+    reloadMatrizRedimensionamento();
 
     const uTextureLoc = gl.getUniformLocation(program, "uTexture");
 

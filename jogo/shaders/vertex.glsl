@@ -5,7 +5,7 @@ in vec2 uv;
 uniform vec2 uRedimensionamento;
 uniform vec2 uOffset;
 uniform float angulo;
-uniform vec2 uCentro; // 👈 novo
+uniform vec2 uCentro;
 
 out vec2 vUV;
 

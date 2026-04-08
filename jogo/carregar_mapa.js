@@ -11,8 +11,8 @@ async function lerArquivo(arquivo) {
 let dados = {};
 let id = 0;
 let texto;
-const inimigos = new Set(['e', 'f', 'g', 'h', "tiroInimigo"]);
-const causaDano = new Set(['e', 'f', 'g', 'h', "tiroInimigo"]);
+const inimigos =  new Set(['e', 'f', 'g', 'h', 'j', "tiroInimigo"]);
+const causaDano = new Set(['e', 'f', 'g', 'h', 'j', "tiroInimigo"]);
 const paredes = new Set(['#', 'v']);
 
 export async function gerarMapa(numerofase) {
@@ -111,7 +111,6 @@ function movimentoTiro(tiro){
 let inimigosRestantes = 1;
 // Função de movimento das entidades, recebe o objeto de entidades e atualiza a posição de cada uma de acordo com seu tipo
 export function moverEntidades(entidades){
-    dados.jogador.tick();
     inimigosRestantes = 0;
     for(const entidade of Object.values(entidades)){
         if(inimigos.has(entidade.tipo)) {
@@ -184,10 +183,10 @@ function gerarTiro(){
 // verifica primeiro o movimento diagonal e se ocorrer retorna para evitar que o movimento seja processado mais de uma vez,
 // tambem verifica se o jogador esta atirando
 // Entradas: objeto com as teclas pressionadas, objeto do jogador
-export function moverJogador(tecla, jogador){
+export function moverJogador(tecla, jogador, mouseON, mousePos){
     if(jogador.ultimoTiro > 0)jogador.ultimoTiro -= 1;
     if(jogador.ultimoTiro <= 0){
-        if(tecla[" "]) {
+        if(tecla[" "] || tecla[0]) {
             gerarTiro();
             jogador.ultimoTiro = jogador.cadenciaDeTiro;
         }
@@ -210,4 +209,6 @@ export function moverJogador(tecla, jogador){
     else if(tecla.d && !ColisaoPlayerMovendo([jogador.vel, 0], jogador)) 
         jogador.moverDireita();
     else jogador.parado();
+
+    dados.jogador.tick(mouseON, mousePos);
 }

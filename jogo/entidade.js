@@ -117,7 +117,7 @@ class Entidade {
 class Jogador extends Entidade {
     constructor() {
         super(0, [0, 0], 0.5, null, 'j');
-        this.vidas = 3;
+        this.vidas = 5;
         this.velocidade = 0.5;
         this.invencivel = false;
         this.cadenciaDeTiro = 15;
@@ -125,9 +125,10 @@ class Jogador extends Entidade {
         this.pontos = 0;
         this.offSetTextura(0, 4);
         this.angulo = 0;
+        this.anguloAuxiliar = 0;
         this.textura = 0;
     }
-    tick(){
+    tick(mouseON, mousePos){
         if(this.vidas < 0) {
             this.velocidade = 0;
             this.animacaoMorte();
@@ -136,6 +137,14 @@ class Jogador extends Entidade {
             else this.textura = 0;
             this.offSetTextura(this.textura,4);
         }
+        
+        let direcao = [(mousePos.x - this.pos[0]) / Math.hypot(mousePos.x - this.pos[0], mousePos.y - this.pos[1]) , (mousePos.y - this.pos[1]) / Math.hypot(mousePos.x - this.pos[0], mousePos.y - this.pos[1])];
+
+        if(mouseON){
+            if(direcao[1] > 0) this.angulo = Math.atan(direcao[0] / direcao[1]);
+            else this.angulo = Math.atan(direcao[0] / direcao[1]) + Math.PI;
+        }
+        else this.angulo = this.anguloAuxiliar;
     }
     sofrerDano(){
         if(this.vidas > 0){
@@ -159,50 +168,50 @@ class Jogador extends Entidade {
     }
     moverCima(){
         this.pos[1] += this.velocidade;
-        if(this.angulo > Math.PI/50) this.angulo -= Math.PI/20;
-        else if(this.angulo < -Math.PI/50) this.angulo += Math.PI/20;
-        else this.angulo = 0;
+        if(this.anguloAuxiliar > Math.PI/50) this.anguloAuxiliar -= Math.PI/20;
+        else if(this.anguloAuxiliar < -Math.PI/50) this.anguloAuxiliar += Math.PI/20;
+        else this.anguloAuxiliar = 0;
     }
     moverBaixo(){
         this.pos[1] -= this.velocidade;
-        if(this.angulo > Math.PI/50) this.angulo -= Math.PI/20;
-        else if(this.angulo < -Math.PI/50) this.angulo += Math.PI/20;
-        else this.angulo = 0;
+        if(this.anguloAuxiliar > Math.PI/50) this.anguloAuxiliar -= Math.PI/20;
+        else if(this.anguloAuxiliar < -Math.PI/50) this.anguloAuxiliar += Math.PI/20;
+        else this.anguloAuxiliar = 0;
     }
     moverEsquerda(){
         this.pos[0] -= this.velocidade;
-        if(this.angulo > -Math.PI/4) this.angulo -= Math.PI/20;
+        if(this.anguloAuxiliar > -Math.PI/4) this.anguloAuxiliar -= Math.PI/20;
     }
     moverDireita(){
         this.pos[0] += this.velocidade;
-        if(this.angulo < Math.PI/4) this.angulo += Math.PI/20;
+        if(this.anguloAuxiliar < Math.PI/4) this.anguloAuxiliar += Math.PI/20;
     }
     moverCimaEsquerda(){
         this.pos[0] -= Math.cos(Math.PI/4)*this.velocidade;
         this.pos[1] += Math.sin(Math.PI/4)*this.velocidade;
-        if(this.angulo > -Math.PI/4) this.angulo -= Math.PI/20;
+        if(this.anguloAuxiliar > -Math.PI/4) this.anguloAuxiliar -= Math.PI/20;
     }
     moverCimaDireita(){
         this.pos[0] += Math.cos(Math.PI/4)*this.velocidade;
         this.pos[1] += Math.sin(Math.PI/4)*this.velocidade;
-        if(this.angulo < Math.PI/4) this.angulo += Math.PI/20;
+        if(this.anguloAuxiliar < Math.PI/4) this.anguloAuxiliar += Math.PI/20;
     }
     moverBaixoEsquerda(){
         this.pos[0] -= Math.cos(Math.PI/4)*this.velocidade;
         this.pos[1] -= Math.sin(Math.PI/4)*this.velocidade;
-        if(this.angulo < Math.PI/4) this.angulo += Math.PI/20;
+        if(this.anguloAuxiliar < Math.PI/4) this.anguloAuxiliar += Math.PI/20;
     }
     moverBaixoDireita(){
         this.pos[0] += Math.cos(Math.PI/4)*this.velocidade;
         this.pos[1] -= Math.sin(Math.PI/4)*this.velocidade;
-        if(this.angulo > -Math.PI/4) this.angulo -= Math.PI/20;
+        if(this.anguloAuxiliar > -Math.PI/4) this.anguloAuxiliar -= Math.PI/20;
         
     }
     parado(){
-        //if(this.angulo > Math.PI/50) this.angulo -= Math.PI/50;
-        //else if(this.angulo < -Math.PI/50) thiswa.angulo += Math.PI/50;
-        //else this.angulo = 0;
-        this.angulo += 0;
+        //if(this.anguloAuxiliar > Math.PI/50) this.anguloAuxiliar -= Math.PI/50;
+        //else if(this.anguloAuxiliar < -Math.PI/50) thiswa.anguloAuxiliar += Math.PI/50;
+        //else this.anguloAuxiliar = 0;
+        this.anguloAuxiliar += 0;
     }
 }
 
@@ -231,23 +240,21 @@ class Tiro extends Entidade {
         super(id, pos, vel, null, 't');
         this.angulo = angulo;
         this.offSetTextura(0, 1);
-        this.direcao = [(this.alvo[0] - this.pos[0]) / Math.hypot(this.alvo[0] - this.pos[0], this.alvo[1] - this.pos[1]) , (this.alvo[1] - this.pos[1]) / Math.hypot(this.alvo[0] - this.pos[0], this.alvo[1] - this.pos[1])];
     }
-
     mover(){
-        this.pos[0] += Math.cos(this.angulo) * this.vel;
-        this.pos[1] += Math.sin(this.angulo) * this.vel;
+        this.pos[0] += Math.cos(this.angulo - Math.PI/2) * this.vel;
+        this.pos[1] += Math.sin(this.angulo + Math.PI/2) * this.vel;
     }
 }
 
 class TiroInimigo extends Entidade {
-    constructor(id, pos, vel, alvo, altura, largura, entidades) {
-        super(id, pos, vel, alvo, "tiroInimigo");
+    constructor(id, pos, vel, altura, largura, entidades, angulo) {
+        super(id, pos, vel, null, "tiroInimigo");
         this.offSetTextura(1, 1);
         this.entidades = entidades;
         this.altura = altura;
         this.largura = largura;
-        this.angulo = Math.atan(alvo[0]/alvo[1]);
+        this.angulo = angulo;
     }
     mover(){
         this.pos[0] -= this.vel * Math.sin(this.angulo);
@@ -418,8 +425,7 @@ class InimigoH extends Inimigo{
         let idProcura = 1;
         while(this.entidades[idProcura] != null) idProcura ++;
 
-        if(this.pos[1] < 5) this.entidades[idProcura] = contruirEntidade(idProcura,"tiroInimigo", [this.pos[0],this.pos[1]], this.largura, this.altura, null, [this.pos[0],this.altura+3],this.entidades);
-        else this.entidades[idProcura] = contruirEntidade(idProcura,"tiroInimigo", [this.pos[0],this.pos[1]], this.largura, this.altura, null, [this.pos[0],0-3], this.entidades);
+        this.entidades[idProcura] = new TiroInimigo(idProcura, [this.pos[0],this.pos[1]], 0.5, this.altura, this.largura, this.entidades, this.angulo);
     }
 }
 
@@ -465,7 +471,7 @@ class InimigoJ extends Inimigo{
         mira[0] = this.jogador.pos[0] - this.pos[0];
         mira[1] = this.jogador.pos[1] - this.pos[1];
 
-        this.entidades[idProcura] = contruirEntidade(idProcura,"tiroInimigo", [this.pos[0],this.pos[1]], this.largura, this.altura, null, [mira[0], mira[1]], this.entidades);
+        this.entidades[idProcura] = new TiroInimigo(idProcura, [this.pos[0],this.pos[1]], 0.5, this.altura, this.largura, this.entidades, this.angulo);
     }
 }
 
@@ -473,11 +479,10 @@ class InimigoJ extends Inimigo{
 let vidaCounter = 1;
 
 export function resetviVdaCounter(){
-    console.log(vidaCounter);
     vidaCounter = 1;
 }
 
-export function contruirEntidade(id, tipo, pos, largura, altura, jogador, alvo, entidades, casa, valor){
+export function contruirEntidade(id, tipo, pos, largura, altura, jogador, alvo, entidades, casa, valor, angulo){
     if(tipo === 'p') return new Jogador();
     if(tipo === 'e') return new InimigoE(id, pos, largura, jogador);
     if(tipo === 'f') return new InimigoF(id, pos, altura);
@@ -487,6 +492,5 @@ export function contruirEntidade(id, tipo, pos, largura, altura, jogador, alvo, 
     if(tipo === 'v') return new Vida(id, pos, vidaCounter++);
     if(tipo === 'h') return new InimigoH(id, pos, altura, largura, entidades);
     if(tipo === 'j') return new InimigoJ(id, pos, largura, entidades, jogador);
-    if(tipo == "tiroInimigo") return new TiroInimigo(id, pos, 0.5, alvo, altura, largura, entidades);
     if(tipo == "numero") return new Pontuacao(id, pos, casa, valor)
 }
