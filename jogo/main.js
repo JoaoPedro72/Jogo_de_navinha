@@ -32,8 +32,11 @@ let frames = 0;
 let frameRate = 31;
 let pause = false;
 let toglePause = false;
+let inimigosRestantes = 1;
+let fase = 0;
+let pontos = 0;
 
-function update_screen(agora) {
+async function update_screen(agora) {
     const quantoPassou = (agora - logoAntes) / 1000
     
     if(quantoPassou > 1/frameRate){
@@ -45,13 +48,20 @@ function update_screen(agora) {
         } else if (!teclas.Escape) {
             toglePause = false;
         }
-
-        if(!pause && !dados.jogador.morto){
+        
+        if(!pause && !dados.jogador.morto && inimigosRestantes > 0){
             moverJogador(teclas, dados.jogador);
-            console.log(dados.jogador.vidas);
-            moverEntidades(dados.entidades);
+            inimigosRestantes = moverEntidades(dados.entidades);
             desenharTela();
         }
+        if(!pause && !dados.jogador.morto && inimigosRestantes == 0){
+            fase ++;
+            inimigosRestantes = 10;
+            pontos = dados.jogador.pontos;
+            pause = true;
+            return main();
+        }
+
 
         frames++;
         if(agora/1000 > segundos){
@@ -127,6 +137,9 @@ function desenharTela() {
 
     // ===== ENTIDADES =====
     for (const entidade of Object.values(dados.entidades)) {
+        if(entidade.angulo==null)gl.uniform1f(uAnguloLoc, 0);
+        else gl.uniform1f(uAnguloLoc, entidade.angulo);
+
         gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, entidade.cordenadasTextura, gl.DYNAMIC_DRAW);
 
@@ -209,6 +222,11 @@ function carregarTextura(){
     };
 }
 
+function reloadMatrizRedimensionamento(){
+    matrizRedimensionamento[0] = 2/canvas.width;
+    matrizRedimensionamento[1] = 2/canvas.height;
+}
+
 async function main(){
     program = await initShaders();
     await initBackground();
@@ -218,7 +236,9 @@ async function main(){
 
     gl.viewport(0, 0, canvas.width, canvas.height);
 
-    dados = await gerarMapa();
+    //dados = {};
+    dados = await gerarMapa(fase);
+    dados.jogador.pontos = pontos;
 
     const uTextureLoc = gl.getUniformLocation(program, "uTexture");
 
@@ -270,6 +290,9 @@ async function main(){
 
     canvas.width = minSize/minMapSize * dados.largura;
     canvas.height = minSize/minMapSize * dados.altura;
+
+    desenharTela();
+    
     requestAnimationFrame(update_screen);
 }
 

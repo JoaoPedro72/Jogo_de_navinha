@@ -17,6 +17,7 @@
 - Movimentação basica do inimigos
 - Rasante
 - sistema de pontos
+- animações
 
 - pause
 
@@ -37,7 +38,6 @@
 - Mais fases base
 - salvar pontuação
 - fases procedurais
-- animações
 - Tela cheia
 
 - separar as funções de Gerar Mapa das funções de logica do jogo
