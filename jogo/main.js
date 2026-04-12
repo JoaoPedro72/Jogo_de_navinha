@@ -45,7 +45,7 @@ let frameRate = 31;
 let pause = true;
 let toglePause = false;
 let inimigosRestantes = 1;
-let fase = 3;
+let fase = 0;
 let pontos = 0;
 let mouseTogle = false;
 let mouseON = false;
@@ -180,7 +180,7 @@ function desenharTela() {
         if(entidade.angulo==null)gl.uniform1f(uAnguloLoc, 0);
         else gl.uniform1f(uAnguloLoc, entidade.angulo);
 
-        
+
         gl.bufferData(gl.ARRAY_BUFFER, entidade.cordenadasTextura, gl.DYNAMIC_DRAW);
 
         gl.uniform1f(uAnguloLoc, entidade.angulo ?? 0);
@@ -190,7 +190,7 @@ function desenharTela() {
             entidade.pos[0] * minSize / minMapSize,
             entidade.pos[1] * minSize / minMapSize
         );
-
+        
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
     }
 

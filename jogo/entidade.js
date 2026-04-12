@@ -147,7 +147,6 @@ class Jogador extends Entidade {
             else this.textura = 0;
             this.offSetTextura(this.textura,4);
         }
-        console.log(this.pontos);
         
         let direcao = [(mousePos.x - this.pos[0]) / Math.hypot(mousePos.x - this.pos[0], mousePos.y - this.pos[1]) , (mousePos.y - this.pos[1]) / Math.hypot(mousePos.x - this.pos[0], mousePos.y - this.pos[1])];
 
@@ -527,13 +526,12 @@ export function esconderTelaNivel(entidades){
 }
 
 function telaDerrota(id, entidades, largura, altura){
-    console.log("derrota");
-    entidades[id++] = new texto(id, [largura/2 - 3, altura/2 - 1], [4, 7], "derrota");
-    entidades[id++] = new texto(id, [largura/2 - 2, altura/2 - 1], [5, 7], "derrota");
-    entidades[id++] = new texto(id, [largura/2 - 1, altura/2 - 1], [6, 7], "derrota");
-    entidades[id++] = new texto(id, [largura/2 - 0, altura/2 - 1], [7, 7], "derrota");
-    entidades[id++] = new texto(id, [largura/2 + 1, altura/2 - 1], [8, 7], "derrota");
-    entidades[id++] = new texto(id, [largura/2 + 2, altura/2 - 1], [9, 7], "derrota");
+    entidades[id++] = new texto(id, [largura/2 - 3, altura/2], [4, 8], "derrota");
+    entidades[id++] = new texto(id, [largura/2 - 2, altura/2], [5, 8], "derrota");
+    entidades[id++] = new texto(id, [largura/2 - 1, altura/2], [6, 8], "derrota");
+    entidades[id++] = new texto(id, [largura/2 - 0, altura/2], [7, 8], "derrota");
+    entidades[id++] = new texto(id, [largura/2 + 1, altura/2], [8, 8], "derrota");
+    entidades[id++] = new texto(id, [largura/2 + 2, altura/2], [9, 8], "derrota");
 }
 
 export function contruirEntidade(id, tipo, pos, largura, altura, jogador, alvo, entidades, casa, valor, angulo){

@@ -11,6 +11,8 @@
 - Criar Texturas para 2 inimigos
 - Criar Textura tiro
 - Criar Textura Jogador
+- Controle via mouse
+
 
 - Sistema de tiro
 - Remoção de inimigos
@@ -18,6 +20,7 @@
 - Rasante
 - sistema de pontos
 - animações
+- Fundo
 
 - pause
 
@@ -28,7 +31,6 @@
 - Menu Inicial
 - Tela Game Over
 
-- Fundo
   
 - Deixar menos variaveis globais deixando o código mais modular e enxuto
 - Seletor direto ou indireto de fases
@@ -49,7 +51,6 @@
 - aceleração para a movimentação
 - Ondas de inimigos
 - Power-ups
-- Controle via mouse
 - 
 
 ## Bugs

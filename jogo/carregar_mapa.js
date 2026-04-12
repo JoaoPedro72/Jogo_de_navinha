@@ -1,5 +1,6 @@
 import { contruirEntidade } from "./entidade.js";
 import { resetviVdaCounter } from "./entidade.js";
+import { ControleSom } from "./tocar_sons.js";
 
 
 async function lerArquivo(arquivo) {
@@ -13,6 +14,7 @@ let id = 0;
 let texto;
 let altura;
 let largura;
+const controleSom = new ControleSom();
 const inimigos =  new Set(['e', 'f', 'g', 'h', 'j', "tiroInimigo"]);
 const causaDano = new Set(['e', 'f', 'g', 'h', 'j', "tiroInimigo"]);
 const paredes = new Set(['#', 'v']);
@@ -46,13 +48,12 @@ export async function gerarMapa(numerofase) {
 
     const linhas = texto.trim().split("\n");
 
+    const primeiraLinha = linhas[0];
+
+    [largura, altura] = primeiraLinha.split(" ").map(Number);
+
     resetviVdaCounter();
-
-
     
-    if(linhas[0][linhas[0].length] == undefined) [altura, largura] = [linhas.length, linhas[0].length - 1];
-    else [altura, largura] = [linhas.length, linhas[0].length];
-
     let entidades = {};
     let jogador = contruirEntidade(null, 'p', null, null, null, null, null);
 
@@ -66,19 +67,19 @@ export async function gerarMapa(numerofase) {
     entidades[id] = contruirEntidade(id, "numero", [4,1], null, null, null, null, null, 1, 0);
     id++;
 
-    for (let y = 0; y < altura; y++){
+    for (let y = 1; y <= altura; y++){
         for (let x = 0; x < largura; x++){
 
             const char = linhas[y][x];
 
             
             if(char != 'p' && char != ' ' && char != '\n' && char != '\r' && char !== undefined){
-                entidades[id] = contruirEntidade(id, char, [x, y], largura, altura, jogador, [0,0], entidades);
+                entidades[id] = contruirEntidade(id, char, [x, y-1], largura, altura, jogador, [0,0], entidades);
                 id ++;
             }
 
             if(char === 'p'){
-                jogador.pos = [x, y];
+                jogador.pos = [x, y-1];
             }
         }
     }
@@ -106,6 +107,9 @@ function movimentoTiro(tiro){
             if (entidade.vidas > 0) {
                 entidade.vidas -= 1;
             }
+            if(entidade.vidas == 0){
+                controleSom.tocar("explosion");
+            }
 
             delete dados.entidades[tiro.id];
             return;
@@ -129,6 +133,7 @@ export function moverEntidades(entidades){
         // Vai testar a colisão do jogador com cada entidade
         if(entidade.vidas > 0 && colisao(entidade, dados.jogador) && causaDano.has(entidade.tipo) && !dados.jogador.invencivel){
             dados.jogador.sofrerDano();
+            controleSom.tocar("perder uma vida");
         }
 
         if(entidade.tipo == 'v' && dados.jogador.vidas < entidade.vidaRepresenta) delete dados.entidades[entidade.id];
@@ -137,7 +142,6 @@ export function moverEntidades(entidades){
             delete dados.entidades[entidade.id];
         }
     }
-    if(dados.jogador.morto) contruirEntidade(id,"derrota", null, largura, altura, null, null, entidades);
     return inimigosRestantes;
 }
 
@@ -194,6 +198,7 @@ export function moverJogador(tecla, jogador, mouseON, mousePos){
     if(jogador.ultimoTiro <= 0){
     if(tecla[" "] || tecla[0] || tecla.tiro) {
             gerarTiro();
+            controleSom.tocar("tiro");
             jogador.ultimoTiro = jogador.cadenciaDeTiro;
         }
     }
@@ -216,5 +221,9 @@ export function moverJogador(tecla, jogador, mouseON, mousePos){
         jogador.moverDireita();
     else jogador.parado();
 
-    dados.jogador.tick(mouseON, mousePos);
+    jogador.tick(mouseON, mousePos);
+    if(jogador.morto) {
+        contruirEntidade(id,"derrota", null, dados.largura, dados.altura, null, null, dados.entidades);
+        id += 6;
+    }
 }
