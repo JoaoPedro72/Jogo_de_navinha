@@ -24,6 +24,7 @@ export class ControleSom {
 
     play(audio) {
         const clone = audio.cloneNode();
+        clone.volume = 0.35;
         clone.playbackRate = Math.random() + 0.5;
         clone.play();
     }

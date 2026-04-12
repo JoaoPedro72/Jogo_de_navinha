@@ -1,6 +1,8 @@
 # *Inicio de um jogo de estilo navinha como parte de um trabalho da Materia de Computação Grafica!*
   O objetivo e tentar recriar algo proximo do jogo Galaxian do Atari
 
+## [JOGAR](https://joaopedro72.github.io/Jogo_de_navinha/jogo/tela.html)
+
 ## O que esta pronto
 - O código já gera os objetos na tela
 - Sistema de colisão
@@ -56,6 +58,3 @@
 ## Bugs
 - a tela quando passada para o Github não esta redimensionando corretamente!!
 
-
-
-[https://joaopedro72.github.io/Jogo_de_navinha/](https://joaopedro72.github.io/Jogo_de_navinha/TelaInicial.html)
