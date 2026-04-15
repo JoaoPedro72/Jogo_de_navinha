@@ -3,12 +3,6 @@ const celulaSizePixels = 19;
 const celulaSize = celulaSizePixels/spritesheetSizePixels;
 const espacoColunaELinha = (celulaSizePixels+3)/spritesheetSizePixels;
 
-class Entidades {
-    constructor(){
-        
-    }
-}
-
 class Prop {
     constructor(id, pos) {
         this.id = id;
@@ -496,110 +490,111 @@ class InimigoJ extends Inimigo{
 
 
 
-
-
-let vidaCounter = 1;
-
-export function resetviVdaCounter(){
-    vidaCounter = 1;
-}
-
-function mostrarTelaNivel(id, entidades, numero, largura, altura){
-
-    entidades[id] = new Texto(id, [largura/2 - 2.5, altura/2 - 1], [0, 7], "nivel"); id ++;
-    entidades[id] = new Texto(id, [largura/2 - 1.5, altura/2 - 1], [1, 7], "nivel"); id ++;
-    entidades[id] = new Texto(id, [largura/2 - 0.5, altura/2 - 1], [2, 7], "nivel"); id ++;
-    entidades[id] = new Texto(id, [largura/2 + 0.5, altura/2 - 1], [3, 7], "nivel"); id ++;
-
-    entidades[id] = new Texto(id, [largura/2 - 2.5, altura/2 - 0], [0, 8], "nivel"); id ++;
-    entidades[id] = new Texto(id, [largura/2 - 1.5, altura/2 - 0], [1, 8], "nivel"); id ++;
-    entidades[id] = new Texto(id, [largura/2 - 0.5, altura/2 - 0], [2, 8], "nivel"); id ++;
-    entidades[id] = new Texto(id, [largura/2 + 0.5, altura/2 - 0], [3, 8], "nivel"); id ++;
-    
-    entidades[id] = new Texto(id, [largura/2 + 2, altura/2 - 0.5], [numero, 9], "nivel"); id ++;
-
-    mostrarDica();
-}
-
-function mostrarDica(){
-    let dica = (Math.random() * 2) | 0;
-    if(dica == 0) escrever("aperte m para mirarcom o mouse",[3,5],19,"dica");
-    if(dica == 1) escrever("precionar q liga o tiro automatico",[3,5],19,"dica");
-}
-
-function escrever(texto, pos, largMaxTexto, identificador){
-    let id = 0;
-    while(entidades[id] != null) id++;
-    
-    if(texto.length > largMaxTexto){
-        entidades[id] = new Texto(id, [pos[0], pos[1]], [0, 0], identificador);
-        entidades[id].gerarTexto(entidades, texto.slice(0,largMaxTexto));
-        escrever(texto.slice(largMaxTexto), [pos[0],pos[1]-1], largMaxTexto, identificador);
-    }else{
-        entidades[id] = new Texto(id, [pos[0], pos[1]], [0, 0], identificador);
-        entidades[id].gerarTexto(entidades, texto);
+export class CaixaDeEntidades {
+    constructor(entidades, altura, largura){
+        this.vidaCounter = 1;
+        this.entidades = entidades;
+        this.largura = largura;
+        this.altura = altura;
+        this.jogador;
     }
-}
+    
 
-export function esconderTelaNivel(entidades){
-    for (const entidade of Object.values(entidades)) {
-        if(entidade.codColetivo == "nivel") {
-            entidade.pos[0] = -10;
-            delete entidades[entidade.id];
+    resetVidaCounter(){
+        this.vidaCounter = 1;
+    }
+
+    mostrarTelaNivel(id, entidades, numero, largura, altura){
+
+        this.entidades[id] = new Texto(id, [this.largura/2 - 2.5, altura/2 - 1], [0, 7], "nivel"); id ++;
+        this.entidades[id] = new Texto(id, [this.largura/2 - 1.5, altura/2 - 1], [1, 7], "nivel"); id ++;
+        this.entidades[id] = new Texto(id, [this.largura/2 - 0.5, altura/2 - 1], [2, 7], "nivel"); id ++;
+        this.entidades[id] = new Texto(id, [this.largura/2 + 0.5, altura/2 - 1], [3, 7], "nivel"); id ++;
+
+        this.entidades[id] = new Texto(id, [this.largura/2 - 2.5, altura/2 - 0], [0, 8], "nivel"); id ++;
+        this.entidades[id] = new Texto(id, [this.largura/2 - 1.5, altura/2 - 0], [1, 8], "nivel"); id ++;
+        this.entidades[id] = new Texto(id, [this.largura/2 - 0.5, altura/2 - 0], [2, 8], "nivel"); id ++;
+        this.entidades[id] = new Texto(id, [this.largura/2 + 0.5, altura/2 - 0], [3, 8], "nivel"); id ++;
+        
+        this.entidades[id] = new Texto(id, [this.largura/2 + 2, altura/2 - 0.5], [numero, 9], "nivel"); id ++;
+
+        this.mostrarDica();
+    }
+
+    mostrarDica(){
+        let dica = (Math.random() * 2) | 0;
+        if(dica == 0) this.escrever("aperte m para mirarcom o mouse",[3,5],19,"dica");
+        if(dica == 1) this.escrever("precionar q liga o tiro automatico",[3,5],19,"dica");
+    }
+
+    escrever(texto, pos, largMaxTexto, identificador){
+        let id = 0;
+        while(this.entidades[id] != null) id++;
+        
+        if(texto.length > largMaxTexto){
+            this.entidades[id] = new Texto(id, [pos[0], pos[1]], [0, 0], identificador);
+            this.entidades[id].gerarTexto(this.entidades, texto.slice(0,largMaxTexto));
+            this.escrever(texto.slice(largMaxTexto), [pos[0],pos[1]-1], largMaxTexto, identificador);
+        }else{
+            this.entidades[id] = new Texto(id, [pos[0], pos[1]], [0, 0], identificador);
+            this.entidades[id].gerarTexto(this.entidades, texto);
         }
     }
-    apagarTexto("dica");
-}
 
-function telaDerrota(id, entidades, largura, altura){
-    entidades[id++] = new Texto(id, [largura/2 - 3, altura/2], [4, 8], "derrota");
-    entidades[id++] = new Texto(id, [largura/2 - 2, altura/2], [5, 8], "derrota");
-    entidades[id++] = new Texto(id, [largura/2 - 1, altura/2], [6, 8], "derrota");
-    entidades[id++] = new Texto(id, [largura/2 - 0, altura/2], [7, 8], "derrota");
-    entidades[id++] = new Texto(id, [largura/2 + 1, altura/2], [8, 8], "derrota");
-    entidades[id++] = new Texto(id, [largura/2 + 2, altura/2], [9, 8], "derrota");
-}
-
-function apagarTexto(codColetivo){
-    for (const entidade of Object.values(entidades)){
-        if(entidade.tipo == "texto") if(entidade.codColetivo == codColetivo) delete entidades[entidade.id];
+    esconderTelaNivel(entidades){
+        for (const entidade of Object.values(this.entidades)) {
+            if(entidade.codColetivo == "nivel") {
+                entidade.pos[0] = -10;
+                delete this.entidades[entidade.id];
+            }
+        }
+        this.apagarTexto("dica");
     }
-}
 
-let entidades;
-let largura;
-let altura;
-export function setDados(ent, larg, alt){
-    entidades = ent;
-    largura = larg;
-    altura = alt;
-}
+    telaDerrota(id, entidades, largura, altura){
+        this.entidades[id++] = new Texto(id, [largura/2 - 3, altura/2], [4, 8], "derrota");
+        this.entidades[id++] = new Texto(id, [largura/2 - 2, altura/2], [5, 8], "derrota");
+        this.entidades[id++] = new Texto(id, [largura/2 - 1, altura/2], [6, 8], "derrota");
+        this.entidades[id++] = new Texto(id, [largura/2 - 0, altura/2], [7, 8], "derrota");
+        this.entidades[id++] = new Texto(id, [largura/2 + 1, altura/2], [8, 8], "derrota");
+        this.entidades[id++] = new Texto(id, [largura/2 + 2, altura/2], [9, 8], "derrota");
+    }
 
-export function contruirEntidade({
-    id = 0,
-    tipo,
-    pos,
-    jogador,
-    casa,
-    valor = 0,
-    codColetivo = ""
-}){
-    while(entidades[id] != null) id++;
-    
-    console.log("tentando criar " + tipo);
-    if(tipo === 'p') return new Jogador();
-    if(tipo === 'e') entidades[id] = new InimigoE(id, pos, largura, jogador);
-    if(tipo === 'f') entidades[id] =  new InimigoF(id, pos, altura);
-    if(tipo === 't') entidades[id] =  new Tiro(id, pos, 0.5, jogador.angulo);
-    if(tipo === '#') entidades[id] =  new Parede(id, pos);
-    if(tipo === 'g') entidades[id] =  new InimigoG(id, pos, altura, largura, jogador);
-    if(tipo === 'v') entidades[id] =  new Vida(id, pos, vidaCounter++);
-    if(tipo === 'h') entidades[id] =  new InimigoH(id, pos, altura, largura, entidades);
-    if(tipo === 'j') entidades[id] =  new InimigoJ(id, pos, largura, entidades, jogador);
-    if(tipo == "numero") entidades[id] =  new Pontuacao(id, pos, casa, valor)
-    if(tipo == "esconderNivel") esconderTelaNivel(entidades);
-    if(tipo == "nivel") mostrarTelaNivel(id,entidades, valor, largura, altura);
-    if(tipo == "derrota") telaDerrota(id, entidades, largura, altura);
-    if(tipo == "texto") entidades[id] =  new Texto(id, pos, [0,0], codColetivo);
-    if(tipo == "apagar") apagarTexto(codColetivo);
+    apagarTexto(codColetivo){
+        for (const entidade of Object.values(this.entidades)){
+            if(entidade.tipo == "texto") if(entidade.codColetivo == codColetivo) delete this.entidades[entidade.id];
+        }
+    }
+
+    contruirEntidade({
+        id = 0,
+        tipo,
+        pos,
+        jogador,
+        casa,
+        valor = 0,
+        codColetivo = ""
+    }){
+        while(this.entidades[id] != null) id++;
+        
+        console.log("tentando criar " + tipo);
+        if(tipo === 'p') {
+            this.jogador = new Jogador();
+            return this.jogador;
+        }
+        if(tipo === 'e') this.entidades[id] = new InimigoE(id, pos, this.largura, this.jogador);
+        if(tipo === 'f') this.entidades[id] =  new InimigoF(id, pos, this.altura);
+        if(tipo === 't') this.entidades[id] =  new Tiro(id, pos, 0.5, this.jogador.angulo);
+        if(tipo === '#') this.entidades[id] =  new Parede(id, pos);
+        if(tipo === 'g') this.entidades[id] =  new InimigoG(id, pos, this.altura, this.largura, this.jogador);
+        if(tipo === 'v') this.entidades[id] =  new Vida(id, pos, this.vidaCounter++);
+        if(tipo === 'h') this.entidades[id] =  new InimigoH(id, pos, this.altura, this.largura, this.entidades);
+        if(tipo === 'j') this.entidades[id] =  new InimigoJ(id, pos, this.largura, this.entidades, this.jogador);
+        if(tipo == "numero") this.entidades[id] =  new Pontuacao(id, pos, casa, valor)
+        if(tipo == "esconderNivel") this.esconderTelaNivel(this.entidades);
+        if(tipo == "nivel") this.mostrarTelaNivel(id, this.entidades, valor, this.largura, this.altura);
+        if(tipo == "derrota") this.telaDerrota(id, this.entidades, this.largura, this.altura);
+        if(tipo == "texto") this.entidades[id] =  new Texto(id, pos, [0,0], codColetivo);
+        if(tipo == "apagar") this.apagarTexto(codColetivo);
+    }
 }

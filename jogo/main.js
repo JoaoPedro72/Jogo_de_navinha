@@ -1,7 +1,6 @@
 import { gerarMapa } from '../jogo/carregar_mapa.js';
 import { moverJogador } from '../jogo/carregar_mapa.js';
 import { moverEntidades } from '../jogo/carregar_mapa.js';
-import { esconderTelaNivel } from "./entidade.js";
 
 
 const teclas = {};
@@ -59,8 +58,8 @@ async function update_screen(agora) {
         logoAntes = agora;
         tempo ++;
         if(tempo == 50){
-            esconderTelaNivel(dados.entidades);
-            esconderTelaNivel(dados.entidades);
+            dados.esconderTelaNivel(dados.entidades);
+            dados.esconderTelaNivel(dados.entidades);
             pause = false;
         }
         
