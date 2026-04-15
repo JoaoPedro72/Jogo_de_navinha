@@ -1,48 +1,66 @@
-const spritesheetSizePixels = 217;
+const spritesheetSizePixels = 290;
 const celulaSizePixels = 19;
 const celulaSize = celulaSizePixels/spritesheetSizePixels;
 const espacoColunaELinha = (celulaSizePixels+3)/spritesheetSizePixels;
 
+class Entidades {
+    constructor(){
+        
+    }
+}
 
-
-class Parede {
+class Prop {
     constructor(id, pos) {
         this.id = id;
         this.pos = pos;
-        this.tipo = '#';
-        this.cordenadasTextura = new Float32Array([
-            0.0, 0.0, 
-            0.2, 0.0, 
-            0.2, 0.2,
-            0.0, 0.2
-        ]);
-        this.offSetTextura(1, 0);
+
+        this.escalaText = celulaSize;
+        this.offSetText = [0, 0];
     }
     offSetTextura(offsetX, offsetY){
         offsetX = offsetX * espacoColunaELinha;
         offsetY = offsetY * espacoColunaELinha;
 
-        this.cordenadasTextura[0] = offsetX;
-        this.cordenadasTextura[1] = offsetY;
-        this.cordenadasTextura[2] = offsetX + celulaSize;
-        this.cordenadasTextura[3] = offsetY;
-        this.cordenadasTextura[4] = offsetX + celulaSize;
-        this.cordenadasTextura[5] = offsetY + celulaSize;
-        this.cordenadasTextura[6] = offsetX;
-        this.cordenadasTextura[7] = offsetY + celulaSize;
+        this.offSetText[0] = offsetX;
+        this.offSetText[1] = offsetY;
     }
 }
 
-class texto extends Parede {
-    constructor(id, pos, offSetParede, codColetivo) {
+class Parede extends Prop{
+    constructor(id, pos) {
+        super(id, pos);
+        this.tipo = '#';
+        this.offSetTextura(1, 0);
+    }
+}
+
+class Texto extends Prop{
+    constructor(id, pos, offSetText, codColetivo) {
         super(id, pos);
         this.tipo = "texto";
         this.codColetivo = codColetivo;
-        this.offSetTextura(offSetParede[0], offSetParede[1]);
+        this.offSetTextura(offSetText[0], offSetText[1]);
+    }
+    gerarTexto(entidades, texto){ 
+        let nextOffSet = 0.8;
+        let caracter = texto[0];
+        let caracteres_com_menos_espaco = new Set(['t','i','j']);
+        if(caracter >= 'a' && caracter <= 'm')this.offSetTextura(caracter.charCodeAt(0) - 'a'.charCodeAt(0), 12);
+        if(caracter >= 'n' && caracter <= 'z')this.offSetTextura(caracter.charCodeAt(0) - 'n'.charCodeAt(0), 11);
+        if(caracter >= '0' && caracter <= '9')this.offSetTextura(caracter.charCodeAt(0) - '0'.charCodeAt(0), 9);
+        if(caracter == ' ')this.offSetTextura(0, 10);
+        if(caracteres_com_menos_espaco.has(caracter)) {this.pos[0] -=0.2; nextOffSet = 0.6;}
+
+        if(texto.length > 1){
+            let i = this.id;
+            while(entidades[i] != null) i++;
+            entidades[i] = new Texto(i,[this.pos[0]+nextOffSet,this.pos[1]], [0,0], this.codColetivo);
+            entidades[i].gerarTexto(entidades, texto.slice(1));
+        }
     }
 }
 
-class Pontuacao extends Parede {
+class Pontuacao extends Prop {
     constructor(id, pos, casa, valor){
         super(id, pos);
         this.tipo = "numero";
@@ -64,7 +82,7 @@ class Pontuacao extends Parede {
     }
 }
 
-class Vida extends Parede {
+class Vida extends Prop {
     constructor(id, pos, vidaRepresenta) {
         super(id, pos);
         this.tipo = 'v';
@@ -73,10 +91,9 @@ class Vida extends Parede {
     }
 }
 
-class Entidade {
+class Entidade extends Prop{
     constructor(id, pos, vel, alvo, tipo) {
-        this.id = id;
-        this.pos = pos;
+        super(id, pos);
         this.vel = vel;
         this.alvo = alvo;
         this.tipo = tipo;
@@ -84,26 +101,7 @@ class Entidade {
         this.morto = false;
         this.animationTime = 0;
         this.pontos = 0;
-        this.cordenadasTextura = new Float32Array([
-            0.0, 0.0, 
-            0.2, 0.0, 
-            0.2, 0.2, 
-            0.0, 0.2
-        ]);
         this.offSetTextura(0, 0);
-    }
-    offSetTextura(offsetX, offsetY){
-        offsetX = offsetX * espacoColunaELinha;
-        offsetY = offsetY * espacoColunaELinha;
-
-        this.cordenadasTextura[0] = offsetX;
-        this.cordenadasTextura[1] = offsetY;
-        this.cordenadasTextura[2] = offsetX + celulaSize;
-        this.cordenadasTextura[3] = offsetY;
-        this.cordenadasTextura[4] = offsetX + celulaSize;
-        this.cordenadasTextura[5] = offsetY + celulaSize;
-        this.cordenadasTextura[6] = offsetX;
-        this.cordenadasTextura[7] = offsetY + celulaSize;
     }
     tick(){
         if(this.vidas <= 0) this.animacaoMorte();
@@ -495,6 +493,11 @@ class InimigoJ extends Inimigo{
 }
 
 
+
+
+
+
+
 let vidaCounter = 1;
 
 export function resetviVdaCounter(){
@@ -503,17 +506,39 @@ export function resetviVdaCounter(){
 
 function mostrarTelaNivel(id, entidades, numero, largura, altura){
 
-    entidades[id++] = new texto(id, [largura/2 - 2.5, altura/2 - 1], [0, 7], "nivel");
-    entidades[id++] = new texto(id, [largura/2 - 1.5, altura/2 - 1], [1, 7], "nivel");
-    entidades[id++] = new texto(id, [largura/2 - 0.5, altura/2 - 1], [2, 7], "nivel");
-    entidades[id++] = new texto(id, [largura/2 + 0.5, altura/2 - 1], [3, 7], "nivel");
+    entidades[id] = new Texto(id, [largura/2 - 2.5, altura/2 - 1], [0, 7], "nivel"); id ++;
+    entidades[id] = new Texto(id, [largura/2 - 1.5, altura/2 - 1], [1, 7], "nivel"); id ++;
+    entidades[id] = new Texto(id, [largura/2 - 0.5, altura/2 - 1], [2, 7], "nivel"); id ++;
+    entidades[id] = new Texto(id, [largura/2 + 0.5, altura/2 - 1], [3, 7], "nivel"); id ++;
 
-    entidades[id++] = new texto(id, [largura/2 - 2.5, altura/2 - 0], [0, 8], "nivel");
-    entidades[id++] = new texto(id, [largura/2 - 1.5, altura/2 - 0], [1, 8], "nivel");
-    entidades[id++] = new texto(id, [largura/2 - 0.5, altura/2 - 0], [2, 8], "nivel");
-    entidades[id++] = new texto(id, [largura/2 + 0.5, altura/2 - 0], [3, 8], "nivel");
+    entidades[id] = new Texto(id, [largura/2 - 2.5, altura/2 - 0], [0, 8], "nivel"); id ++;
+    entidades[id] = new Texto(id, [largura/2 - 1.5, altura/2 - 0], [1, 8], "nivel"); id ++;
+    entidades[id] = new Texto(id, [largura/2 - 0.5, altura/2 - 0], [2, 8], "nivel"); id ++;
+    entidades[id] = new Texto(id, [largura/2 + 0.5, altura/2 - 0], [3, 8], "nivel"); id ++;
     
-    entidades[id++] = new texto(id, [largura/2 + 2, altura/2 - 0.5], [numero, 9], "nivel");
+    entidades[id] = new Texto(id, [largura/2 + 2, altura/2 - 0.5], [numero, 9], "nivel"); id ++;
+
+    mostrarDica();
+}
+
+function mostrarDica(){
+    let dica = (Math.random() * 2) | 0;
+    if(dica == 0) escrever("aperte m para mirarcom o mouse",[3,5],19,"dica");
+    if(dica == 1) escrever("precionar q liga o tiro automatico",[3,5],19,"dica");
+}
+
+function escrever(texto, pos, largMaxTexto, identificador){
+    let id = 0;
+    while(entidades[id] != null) id++;
+    
+    if(texto.length > largMaxTexto){
+        entidades[id] = new Texto(id, [pos[0], pos[1]], [0, 0], identificador);
+        entidades[id].gerarTexto(entidades, texto.slice(0,largMaxTexto));
+        escrever(texto.slice(largMaxTexto), [pos[0],pos[1]-1], largMaxTexto, identificador);
+    }else{
+        entidades[id] = new Texto(id, [pos[0], pos[1]], [0, 0], identificador);
+        entidades[id].gerarTexto(entidades, texto);
+    }
 }
 
 export function esconderTelaNivel(entidades){
@@ -523,29 +548,58 @@ export function esconderTelaNivel(entidades){
             delete entidades[entidade.id];
         }
     }
+    apagarTexto("dica");
 }
 
 function telaDerrota(id, entidades, largura, altura){
-    entidades[id++] = new texto(id, [largura/2 - 3, altura/2], [4, 8], "derrota");
-    entidades[id++] = new texto(id, [largura/2 - 2, altura/2], [5, 8], "derrota");
-    entidades[id++] = new texto(id, [largura/2 - 1, altura/2], [6, 8], "derrota");
-    entidades[id++] = new texto(id, [largura/2 - 0, altura/2], [7, 8], "derrota");
-    entidades[id++] = new texto(id, [largura/2 + 1, altura/2], [8, 8], "derrota");
-    entidades[id++] = new texto(id, [largura/2 + 2, altura/2], [9, 8], "derrota");
+    entidades[id++] = new Texto(id, [largura/2 - 3, altura/2], [4, 8], "derrota");
+    entidades[id++] = new Texto(id, [largura/2 - 2, altura/2], [5, 8], "derrota");
+    entidades[id++] = new Texto(id, [largura/2 - 1, altura/2], [6, 8], "derrota");
+    entidades[id++] = new Texto(id, [largura/2 - 0, altura/2], [7, 8], "derrota");
+    entidades[id++] = new Texto(id, [largura/2 + 1, altura/2], [8, 8], "derrota");
+    entidades[id++] = new Texto(id, [largura/2 + 2, altura/2], [9, 8], "derrota");
 }
 
-export function contruirEntidade(id, tipo, pos, largura, altura, jogador, alvo, entidades, casa, valor, angulo){
+function apagarTexto(codColetivo){
+    for (const entidade of Object.values(entidades)){
+        if(entidade.tipo == "texto") if(entidade.codColetivo == codColetivo) delete entidades[entidade.id];
+    }
+}
+
+let entidades;
+let largura;
+let altura;
+export function setDados(ent, larg, alt){
+    entidades = ent;
+    largura = larg;
+    altura = alt;
+}
+
+export function contruirEntidade({
+    id = 0,
+    tipo,
+    pos,
+    jogador,
+    casa,
+    valor = 0,
+    codColetivo = ""
+}){
+    while(entidades[id] != null) id++;
+    
+    console.log("tentando criar " + tipo);
     if(tipo === 'p') return new Jogador();
-    if(tipo === 'e') return new InimigoE(id, pos, largura, jogador);
-    if(tipo === 'f') return new InimigoF(id, pos, altura);
-    if(tipo === 't') return new Tiro(id, pos, 0.5, jogador.angulo);
-    if(tipo === '#') return new Parede(id, pos);
-    if(tipo === 'g') return new InimigoG(id, pos, altura, largura, jogador);
-    if(tipo === 'v') return new Vida(id, pos, vidaCounter++);
-    if(tipo === 'h') return new InimigoH(id, pos, altura, largura, entidades);
-    if(tipo === 'j') return new InimigoJ(id, pos, largura, entidades, jogador);
-    if(tipo == "numero") return new Pontuacao(id, pos, casa, valor)
+    if(tipo === 'e') entidades[id] = new InimigoE(id, pos, largura, jogador);
+    if(tipo === 'f') entidades[id] =  new InimigoF(id, pos, altura);
+    if(tipo === 't') entidades[id] =  new Tiro(id, pos, 0.5, jogador.angulo);
+    if(tipo === '#') entidades[id] =  new Parede(id, pos);
+    if(tipo === 'g') entidades[id] =  new InimigoG(id, pos, altura, largura, jogador);
+    if(tipo === 'v') entidades[id] =  new Vida(id, pos, vidaCounter++);
+    if(tipo === 'h') entidades[id] =  new InimigoH(id, pos, altura, largura, entidades);
+    if(tipo === 'j') entidades[id] =  new InimigoJ(id, pos, largura, entidades, jogador);
+    if(tipo == "numero") entidades[id] =  new Pontuacao(id, pos, casa, valor)
     if(tipo == "esconderNivel") esconderTelaNivel(entidades);
     if(tipo == "nivel") mostrarTelaNivel(id,entidades, valor, largura, altura);
     if(tipo == "derrota") telaDerrota(id, entidades, largura, altura);
+    if(tipo == "texto") entidades[id] =  new Texto(id, pos, [0,0], codColetivo);
+    if(tipo == "apagar") apagarTexto(codColetivo);
 }

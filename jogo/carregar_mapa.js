@@ -1,7 +1,7 @@
 import { contruirEntidade } from "./entidade.js";
 import { resetviVdaCounter } from "./entidade.js";
 import { ControleSom } from "./tocar_sons.js";
-
+import { setDados } from "./entidade.js";
 
 async function lerArquivo(arquivo) {
     const response = await fetch(arquivo);
@@ -55,27 +55,22 @@ export async function gerarMapa(numerofase) {
     resetviVdaCounter();
     
     let entidades = {};
-    let jogador = contruirEntidade(null, 'p', null, null, null, null, null);
+    setDados(entidades, largura, altura);
 
+    let jogador = contruirEntidade({tipo:'p'});
 
-    entidades[id] = contruirEntidade(id, "numero", [1,1], null, null, null, null, null, 1000, 0);
-    id++;
-    entidades[id] = contruirEntidade(id, "numero", [2,1], null, null, null, null, null, 100, 0);
-    id++;
-    entidades[id] = contruirEntidade(id, "numero", [3,1], null, null, null, null, null, 10, 0);
-    id++;
-    entidades[id] = contruirEntidade(id, "numero", [4,1], null, null, null, null, null, 1, 0);
-    id++;
+    contruirEntidade({tipo:"numero", pos:[1,1], casa:1000});
+    contruirEntidade({tipo:"numero", pos:[2,1], casa:100});
+    contruirEntidade({tipo:"numero", pos:[3,1], casa:10});
+    contruirEntidade({tipo:"numero", pos:[4,1], casa:1});
+
 
     for (let y = 1; y <= altura; y++){
         for (let x = 0; x < largura; x++){
-
             const char = linhas[y][x];
-
             
             if(char != 'p' && char != ' ' && char != '\n' && char != '\r' && char !== undefined){
-                entidades[id] = contruirEntidade(id, char, [x, y-1], largura, altura, jogador, [0,0], entidades);
-                id ++;
+                contruirEntidade({tipo:char, pos:[x, y-1], jogador:jogador});
             }
 
             if(char === 'p'){
@@ -86,9 +81,7 @@ export async function gerarMapa(numerofase) {
 
     dados = { altura, largura, entidades, jogador };
 
-    contruirEntidade(id, "esconderNivel",null,null,null,null,null,entidades,null);
-    contruirEntidade(id, "nivel",null,largura,altura,null,null,entidades,null,numerofase);
-    id +=10;
+    contruirEntidade({tipo:"nivel",valor:numerofase});
 
     return dados;
 }
@@ -177,16 +170,11 @@ function ColisaoPlayerMovendo(direcao, jogador){
 
 // Função para gerar um tiro, cria um novo objeto de tiro e adiciona ao objeto de entidades
 function gerarTiro(){
-    dados.entidades[id] = contruirEntidade(
-        id,
-        "t",
-        [dados.jogador.pos[0], dados.jogador.pos[1]],
-        0,
-        null,
-        dados.jogador,
-        null
-    );
-    id ++;
+    contruirEntidade({
+        tipo:"t",
+        pos:[dados.jogador.pos[0], dados.jogador.pos[1]],
+        jogador:dados.jogador
+    });
 }
 
 // Função de movimento do jogador, recebe um objeto com as teclas pressionadas e atualiza a posição do jogador de acordo
@@ -223,7 +211,6 @@ export function moverJogador(tecla, jogador, mouseON, mousePos){
 
     jogador.tick(mouseON, mousePos);
     if(jogador.morto) {
-        contruirEntidade(id,"derrota", null, dados.largura, dados.altura, null, null, dados.entidades);
-        id += 6;
+        contruirEntidade({tipo:"derrota"});
     }
 }

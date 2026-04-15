@@ -177,12 +177,9 @@ function desenharTela() {
     gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
     // ===== ENTIDADES =====
     for (const entidade of Object.values(dados.entidades)) {
-        if(entidade.angulo==null)gl.uniform1f(uAnguloLoc, 0);
-        else gl.uniform1f(uAnguloLoc, entidade.angulo);
 
-
-        gl.bufferData(gl.ARRAY_BUFFER, entidade.cordenadasTextura, gl.DYNAMIC_DRAW);
-
+        gl.uniform2f(uOffsetTex, entidade.offSetText[0], entidade.offSetText[1]);
+        gl.uniform2f(uScaleTex, entidade.escalaText, entidade.escalaText);
         gl.uniform1f(uAnguloLoc, entidade.angulo ?? 0);
 
         gl.uniform2f(
@@ -195,8 +192,8 @@ function desenharTela() {
     }
 
     // ===== JOGADOR =====
-    gl.bufferData(gl.ARRAY_BUFFER, dados.jogador.cordenadasTextura, gl.DYNAMIC_DRAW);
-
+    gl.uniform2f(uOffsetTex, dados.jogador.offSetText[0], dados.jogador.offSetText[1]);
+    gl.uniform2f(uScaleTex, dados.jogador.escalaText, dados.jogador.escalaText);
     gl.uniform1f(uAnguloLoc, dados.jogador.angulo);
     gl.uniform2f(
         uOffsetLoc,
@@ -283,6 +280,8 @@ async function main(){
     reloadMatrizRedimensionamento();
 
     const uTextureLoc = gl.getUniformLocation(program, "uTexture");
+    uOffsetTex = gl.getUniformLocation(program, "uOffsetTex");
+    uScaleTex = gl.getUniformLocation(program, "uScale");
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, textura);
@@ -304,7 +303,14 @@ async function main(){
     uvBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
 
-    gl.bufferData(gl.ARRAY_BUFFER, dados.jogador.cordenadasTextura, gl.STATIC_DRAW);
+    let cordenadasTextura = new Float32Array([
+        0.0, 0.0, 
+        1.0, 0.0, 
+        1.0, 1.0,
+        0.0, 1.0
+    ]);
+
+    gl.bufferData(gl.ARRAY_BUFFER, cordenadasTextura, gl.STATIC_DRAW);
 
     const uvLoc = gl.getAttribLocation(program, "uv");
     gl.enableVertexAttribArray(uvLoc);
@@ -402,18 +408,17 @@ let uAnguloLoc;
 let dados;
 let minSize = Math.min(canvas.width, canvas.height);
 let minMapSize;
-let angulo = 0;
 let textura;
 let uvBuffer;
+
+let uScaleTex;
+let uOffsetTex;
 
 let bgProgram;
 let program;
 let bgVao;
 let uTimeLocBg;
 let uResLocBg;
-
-const posicao = [];
-const mapaSize = [];
 
 main();
 
