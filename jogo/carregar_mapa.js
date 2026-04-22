@@ -1,6 +1,12 @@
 import { ControleSom } from "./tocar_sons.js";
 import { CaixaDeEntidades } from "./entidade.js";
 
+/**
+ * Lê um arquivo de texto e retorna seu conteúdo
+ * 
+ * @param {string} arquivo - Caminho do arquivo a ser lido
+ * @returns {Promise<string>} Conteúdo do arquivo em formato de texto
+ */
 async function lerArquivo(arquivo) {
     const response = await fetch(arquivo);
     const texto = await response.text();
@@ -12,15 +18,22 @@ let altura;
 let largura;
 let controle;
 const controleSom = new ControleSom();
-const inimigos =  new Set(['e', 'f', 'g', 'h', 'j', "tiroInimigo"]);
-const causaDano = new Set(['e', 'f', 'g', 'h', 'j', "tiroInimigo"]);
 const paredes = new Set(['#', 'v']);
 
+/**
+ * Gera o mapa do jogo com base no número da fase
+ * 
+ * @param {number} numerofase - Número da fase a ser carregada
+ * @returns {Promise<CaixaDeEntidades>} Objeto controle contendo todas as entidades do jogo
+ */
 export async function gerarMapa(numerofase) {
     
     let fase = "fases/mapateste.txt"
 
     switch(numerofase){
+        case 0:
+            fase = "fases/0.txt";
+            break;
         case 1:
             fase = "fases/1.txt";
             break;
@@ -83,6 +96,11 @@ export async function gerarMapa(numerofase) {
     return controle;
 }
 
+/**
+ * Atualiza o movimento de um tiro e verifica colisões
+ * 
+ * @param {Object} tiro - Objeto do tipo tiro
+ */
 function movimentoTiro(tiro){
     tiro.mover();
     
@@ -93,7 +111,7 @@ function movimentoTiro(tiro){
 
     // colisão com inimigos
     for (const entidade of Object.values(controle.entidades)) {
-        if (inimigos.has(entidade.tipo) && colisao(entidade, tiro)) {
+        if (entidade.inimigo && colisao(entidade, tiro)) {
             if (entidade.vidas > 0) {
                 entidade.vidas -= 1;
             }
@@ -107,12 +125,16 @@ function movimentoTiro(tiro){
     }
 }    
 
-let inimigosRestantes = 1;
-// Função de movimento das listaEntidade, recebe o objeto de listaEntidade e atualiza a posição de cada uma de acordo com seu tipo
+/**
+ * Atualiza todas as entidades do jogo (movimento, colisão, pontuação)
+ * 
+ * @param {Object} listaEntidade - Objeto contendo todas as entidades do jogo
+ * @returns {number} Quantidade de inimigos restantes
+ */
 export function moverEntidades(listaEntidade){
-    inimigosRestantes = 0;
+    let inimigosRestantes = 0;
     for(const entidade of Object.values(listaEntidade)){
-        if(inimigos.has(entidade.tipo)) {
+        if(entidade.inimigo) {
             inimigosRestantes ++;
             entidade.tick();
         }
@@ -121,7 +143,7 @@ export function moverEntidades(listaEntidade){
         if(entidade.tipo == "numero") entidade.calcularValor(controle.jogador.pontos);
         
         // Vai testar a colisão do jogador com cada entidade
-        if(entidade.vidas > 0 && colisao(entidade, controle.jogador) && causaDano.has(entidade.tipo) && !controle.jogador.invencivel){
+        if(entidade.vidas > 0 && colisao(entidade, controle.jogador) && entidade.inimigo && !controle.jogador.invencivel){
             controle.jogador.sofrerDano();
             controleSom.tocar("perder uma vida");
         }
@@ -136,11 +158,13 @@ export function moverEntidades(listaEntidade){
 }
 
 
-// Função de colisão, recebe a entidade com a qual o jogador colidiu e o objeto do jogador, 
-// verifica se a entidade causa dano ou é uma parede e retorna true se for uma parede para impedir o movimento do jogador
-// Entradas: entidade com a qual o jogador colidiu, objeto do jogador
-// Saídas: true se for uma parede, false caso contrário
-
+/**
+ * Verifica colisão entre duas entidades
+ * 
+ * @param {Object} entidade1 - Primeira entidade (possui posição)
+ * @param {Object} entidade2 - Segunda entidade (possui posição)
+ * @returns {boolean} True se houver colisão, false caso contrário
+ */
 function colisao(entidade1, entidade2){
     if(entidade1 == null || entidade2 == null) return false;
 
@@ -151,7 +175,13 @@ function colisao(entidade1, entidade2){
 }
 
 
-// Função de colisão do jogador, recebe a direção do movimento e o objeto do jogador, verifica as 4 pontas do jogador para detectar colisões
+/**
+ * Verifica se o jogador colidiria com uma parede ao se mover
+ * 
+ * @param {Array<number>} direcao - Vetor de movimento [dx, dy]
+ * @param {Object} jogador - Objeto do jogador
+ * @returns {boolean} True se houver colisão com parede, false caso contrário
+ */
 function colisaoPlayerMovendo(direcao, jogador){
 
     for(const entidade of Object.values(controle.entidades)){
@@ -165,7 +195,9 @@ function colisaoPlayerMovendo(direcao, jogador){
     return false;
 }
 
-// Função para gerar um tiro, cria um novo objeto de tiro e adiciona ao objeto de listaEntidade
+/**
+ * Gera um novo tiro a partir da posição do jogador
+ */
 function gerarTiro(){
     controle.contruirEntidade({
         tipo:"t",
@@ -175,11 +207,12 @@ function gerarTiro(){
 }
 
 /**
- * Moves the player entity based on keyboard input and mouse state.
- * @param {Object} tecla - Object representando teclas pressionadas (e.g., {w: true, a: false, ...}).
- * @param {Object} jogador - The player entity object to be moved.
- * @param {boolean} mouseON - Whether mouse control is enabled.
- * @param {Array<number>} mousePos - The current mouse position as [x, y].
+ * Controla o movimento do jogador, disparos e estado geral
+ * 
+ * @param {Object} tecla - Objeto contendo as teclas pressionadas (ex: {w: true, a: false, ...})
+ * @param {Object} jogador - Objeto do jogador
+ * @param {boolean} mouseON - Indica se o controle por mouse está ativo
+ * @param {Array<number>} mousePos - Posição do mouse [x, y]
  */
 export function moverJogador(tecla, jogador, mouseON, mousePos){
     if(jogador.ultimoTiro > 0)jogador.ultimoTiro -= 1;

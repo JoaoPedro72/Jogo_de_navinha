@@ -18,10 +18,10 @@
 #                                  #
 #                                  #
 #                e                 #
-#               e e                #
-#      g      e     e       g      #
+#               r r                #
+#      g      r  r  r       g      #
 #           e         e            #
-#  f e e e e e   f   e e e e e f   #
-#   e e e f e e e e e e e f e e e  #
-#j   g     h   h h h     h     g  j#
+#  f e e r e r   f   r e r e e f   #
+#   e e e f e e r r e e e f e e e  #
+#j   g     h   h j h     h     g  j#
 ####################################

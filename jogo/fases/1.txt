@@ -21,7 +21,7 @@
 #                                  #
 #                                  #
 #                                  #
-#  f e e e e e e f e e e e e e f   #
-#   e e e f e e e e e e e f e e e  #
+#  f e r e e r e f e r e r e e f   #
+#   r e e f e r e e e r e f e e r  #
 #                                  #
 ####################################

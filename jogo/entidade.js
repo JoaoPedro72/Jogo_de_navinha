@@ -224,6 +224,7 @@ class Inimigo extends Entidade {
         this.size = 1;
         this.pontos = 10;
         this.angulo = 0;
+        this.inimigo = true;
     }
     moverAteAlvo(){
         if(this.vidas < 1) return;
@@ -257,6 +258,7 @@ class TiroInimigo extends Entidade {
         this.altura = altura;
         this.largura = largura;
         this.angulo = angulo;
+        this.inimigo = true;
     }
     mover(){
         this.pos[0] -= this.vel * Math.sin(this.angulo);
@@ -265,7 +267,7 @@ class TiroInimigo extends Entidade {
     }
 }
 
-//Inimigo avanço
+// Inimigo avanço
 class InimigoF extends Inimigo {
     constructor(id, pos, altura) {
         super(id, pos, 0.5, [1-pos[0], 0], 'f');
@@ -304,13 +306,13 @@ class InimigoF extends Inimigo {
     }
 }
 
-//Inimigo Rasante
+// Inimigo Rasante
 class InimigoG extends Inimigo {
     constructor(id, pos, altura, largura, jogador) {
         super(id, pos, 0.5, [1-pos[0], 0], 'g');
         this.altura = altura;
         this.largura = largura;
-        this.espera = 30 * 5;
+        this.espera = 15 * 5;
         this.angulo = 0;
         this.pontos = 20;
         this.posInicial = [pos[0], pos[1]];
@@ -325,7 +327,7 @@ class InimigoG extends Inimigo {
         }
         else {
             if(this.pos[1] >= this.posInicial[1]){
-                this.espera = 30 * 5;
+                this.espera = 15 * 5;
                 this.pos[1] -= this.vel;
                 this.angulo = 0;
                 if(this.pos[0] < this.jogador.pos[0])  this.padrao = -1;
@@ -387,7 +389,108 @@ class InimigoE extends Inimigo {
     }
 }
 
-//Inimigo Tiro
+// Inimigo que persegue o jogador
+class InimigoR extends Inimigo {
+    constructor(id, pos, largura, altura, jogador) {
+        super(id, pos, 0.2, [1-pos[0], 0], 'r');
+        this.loaded = true;
+        this.padrao = 1;
+        this.tempo = Math.random() * 280 - 100;
+
+        this.altura = altura;
+        this.largura = largura;
+        this.jogador = jogador;
+
+        this.offSetTextura(0, 3);
+        this.angulo = 0;
+        this.posInicial = [pos[0], pos[1]];
+    }
+    mover(){
+        switch (this.padrao) {
+            case 4:
+                this.perseguir();
+                break;
+            case 5:
+                this.voltarPosicaoInicial();
+            default:
+                this.moverLateral();
+                break;
+        }
+        if(this.pos[0] > this.largura + 1 || this.pos[0] < -1 || this.pos[1] < 2 || this.pos[1] > this.altura + 2 || isNaN(this.pos[0])){
+            this.padrao = 5;
+            this.pos = [this.posInicial[0], this.altura + 1];
+        }
+    }
+    moverLateral(){
+        this.tempo ++;
+
+        switch (this.padrao) {
+            case 1:
+                this.pos[0] += this.vel;
+                if(this.pos[0] > this.largura-2.5 && this.vidas > 0) {this.padrao = 2; this.offSetTextura(1, 3);}
+                this.alvo = [0, this.pos[1] - 1.5];
+                break;
+            case 2:
+                this.pos[1] -= this.vel;
+                if(Math.abs(this.pos[1] - this.alvo[1]) < 0.5 && this.vidas > 0) {this.padrao = 3; this.offSetTextura(0, 3);}
+                break
+            case 3:
+                this.pos[0] -= this.vel;
+                if(this.pos[0] < 1.5 && this.vidas > 0) {this.padrao = 0; this.offSetTextura(1, 3);}
+                this.alvo = [0, this.pos[1] - 1.5];
+                break
+            case 0:
+                this.pos[1] -= this.vel;
+                if(Math.abs(this.pos[1] - this.alvo[1] < 0.5) && this.vidas > 0) {this.padrao = 1; this.offSetTextura(0, 3);}
+                break
+            default:
+                break;
+        }
+        if(this.tempo>200){
+            if(this.pos[1] > 5) this.tempo = Math.random() * 20;
+            this.padrao = 4;
+            this.posInicial = [this.pos[0],this.pos[1]];
+            this.angulo = Math.atan((this.jogador.pos[0] - this.pos[0]) / (this.jogador.pos[1] - this.pos[1]));
+            if(this.jogador.pos[1] - this.pos[1] >= 0) this.angulo += Math.PI;
+            this.vel = 0.5;
+            this.offSetTextura(1, 3);
+        }
+    }
+    voltarPosicaoInicial(){
+        let vetor = [(this.posInicial[0] - this.pos[0]),(this.posInicial[1] - this.pos[1])]
+        this.angulo = Math.atan(vetor[0] / vetor[1]);
+        if(this.posInicial[1] - this.pos[1] >= 0) this.angulo += Math.PI;
+
+        this.pos[0] -= this.vel * Math.sin(this.angulo);
+        this.pos[1] -= this.vel * Math.cos(this.angulo);
+
+        if(Math.abs(vetor[0]) < 0.5 && Math.abs(vetor[1]) < 0.5) {this.padrao = 1; this.offSetTextura(0, 3); this.vel = 0.2; this.angulo=0;}
+    }
+    perseguir(){
+        //padrao 4
+        if(this.vidas < 1) return;
+        let velVira = Math.PI/135;
+        let anguloAlvo = Math.atan((this.jogador.pos[0] - this.pos[0]) / (this.jogador.pos[1] - this.pos[1]));
+        if(this.jogador.pos[1] - this.pos[1] >= 0) anguloAlvo += Math.PI;
+
+        
+        if(Math.abs(this.angulo - anguloAlvo) <= Math.PI){
+            if(this.angulo > anguloAlvo) this.angulo -= velVira;
+            else this.angulo += velVira;
+        }else{
+            if(this.angulo > anguloAlvo) this.angulo += velVira;
+            else this.angulo -= velVira;
+        }
+        
+        if(this.angulo > Math.PI * 2)  this.angulo -= Math.PI * 2;
+        if(this.angulo < -Math.PI * 2) this.angulo += Math.PI * 2;
+        
+        this.pos[0] -= this.vel * Math.sin(this.angulo);
+        this.pos[1] -= this.vel * Math.cos(this.angulo);
+    }
+}
+
+// Inimigo Tiro
 class InimigoH extends Inimigo{
     constructor(id, pos, altura, largura, entidades) {
         super(id, pos, 0.2, [1-pos[0], 0], 'g');
@@ -421,6 +524,7 @@ class InimigoH extends Inimigo{
             }
         }
         if((this.tempo + 10) % 60 == 0) this.atirar();
+
         if(this.tempo > 30 *15)this.tempo = 0;
     }
     atirar(){
@@ -491,6 +595,11 @@ class InimigoJ extends Inimigo{
 
 
 export class CaixaDeEntidades {
+    /**
+     * @param {Object} entidades - Objeto que armazena todas as entidades do jogo
+     * @param {number} altura - Altura do mapa/tela
+     * @param {number} largura - Largura do mapa/tela
+     */
     constructor(entidades, altura, largura){
         this.vidaCounter = 1;
         this.entidades = entidades;
@@ -498,35 +607,53 @@ export class CaixaDeEntidades {
         this.altura = altura;
         this.jogador;
     }
-    
 
+    /**
+     * Reseta o contador usado para gerar IDs/ordem de vidas
+     */
     resetVidaCounter(){
         this.vidaCounter = 1;
     }
 
-    mostrarTelaNivel(id, entidades, numero, largura, altura){
+    /**
+     * Mostra a tela de início de nível
+     * @param {number} id - ID inicial para inserir novas entidades
+     * @param {number} numero - Número do nível atual
+     */
+    mostrarTelaNivel(id, numero){
 
-        this.entidades[id] = new Texto(id, [this.largura/2 - 2.5, altura/2 - 1], [0, 7], "nivel"); id ++;
-        this.entidades[id] = new Texto(id, [this.largura/2 - 1.5, altura/2 - 1], [1, 7], "nivel"); id ++;
-        this.entidades[id] = new Texto(id, [this.largura/2 - 0.5, altura/2 - 1], [2, 7], "nivel"); id ++;
-        this.entidades[id] = new Texto(id, [this.largura/2 + 0.5, altura/2 - 1], [3, 7], "nivel"); id ++;
+        this.entidades[id] = new Texto(id, [this.largura/2 - 2.5, this.altura/2 - 1], [0, 7], "nivel"); id ++;
+        this.entidades[id] = new Texto(id, [this.largura/2 - 1.5, this.altura/2 - 1], [1, 7], "nivel"); id ++;
+        this.entidades[id] = new Texto(id, [this.largura/2 - 0.5, this.altura/2 - 1], [2, 7], "nivel"); id ++;
+        this.entidades[id] = new Texto(id, [this.largura/2 + 0.5, this.altura/2 - 1], [3, 7], "nivel"); id ++;
 
-        this.entidades[id] = new Texto(id, [this.largura/2 - 2.5, altura/2 - 0], [0, 8], "nivel"); id ++;
-        this.entidades[id] = new Texto(id, [this.largura/2 - 1.5, altura/2 - 0], [1, 8], "nivel"); id ++;
-        this.entidades[id] = new Texto(id, [this.largura/2 - 0.5, altura/2 - 0], [2, 8], "nivel"); id ++;
-        this.entidades[id] = new Texto(id, [this.largura/2 + 0.5, altura/2 - 0], [3, 8], "nivel"); id ++;
+        this.entidades[id] = new Texto(id, [this.largura/2 - 2.5, this.altura/2 - 0], [0, 8], "nivel"); id ++;
+        this.entidades[id] = new Texto(id, [this.largura/2 - 1.5, this.altura/2 - 0], [1, 8], "nivel"); id ++;
+        this.entidades[id] = new Texto(id, [this.largura/2 - 0.5, this.altura/2 - 0], [2, 8], "nivel"); id ++;
+        this.entidades[id] = new Texto(id, [this.largura/2 + 0.5, this.altura/2 - 0], [3, 8], "nivel"); id ++;
         
-        this.entidades[id] = new Texto(id, [this.largura/2 + 2, altura/2 - 0.5], [numero, 9], "nivel"); id ++;
+        this.entidades[id] = new Texto(id, [this.largura/2 + 2, this.altura/2 - 0.5], [numero, 9], "nivel"); id ++;
 
         this.mostrarDica();
     }
 
+    /**
+     * Mostra uma dica aleatória na tela
+     */
     mostrarDica(){
         let dica = (Math.random() * 2) | 0;
         if(dica == 0) this.escrever("aperte m para mirarcom o mouse",[3,5],19,"dica");
         if(dica == 1) this.escrever("precionar q liga o tiro automatico",[3,5],19,"dica");
     }
 
+    /**
+     * Escreve um texto na tela, quebrando em várias linhas se necessário
+     * 
+     * @param {string} texto - Texto a ser exibido
+     * @param {Array<number>} pos - Posição inicial [x, y]
+     * @param {number} largMaxTexto - Número máximo de caracteres por linha
+     * @param {string} identificador - Código coletivo para agrupar/remover textos depois
+     */
     escrever(texto, pos, largMaxTexto, identificador){
         let id = 0;
         while(this.entidades[id] != null) id++;
@@ -541,7 +668,11 @@ export class CaixaDeEntidades {
         }
     }
 
-    esconderTelaNivel(entidades){
+    /**
+     * Esconde a tela de nível removendo entidades relacionadas
+     * 
+     */
+    esconderTelaNivel(){
         for (const entidade of Object.values(this.entidades)) {
             if(entidade.codColetivo == "nivel") {
                 entidade.pos[0] = -10;
@@ -551,33 +682,52 @@ export class CaixaDeEntidades {
         this.apagarTexto("dica");
     }
 
-    telaDerrota(id, entidades, largura, altura){
-        this.entidades[id++] = new Texto(id, [largura/2 - 3, altura/2], [4, 8], "derrota");
-        this.entidades[id++] = new Texto(id, [largura/2 - 2, altura/2], [5, 8], "derrota");
-        this.entidades[id++] = new Texto(id, [largura/2 - 1, altura/2], [6, 8], "derrota");
-        this.entidades[id++] = new Texto(id, [largura/2 - 0, altura/2], [7, 8], "derrota");
-        this.entidades[id++] = new Texto(id, [largura/2 + 1, altura/2], [8, 8], "derrota");
-        this.entidades[id++] = new Texto(id, [largura/2 + 2, altura/2], [9, 8], "derrota");
+    /**
+     * Cria a tela de derrota
+     * 
+     * @param {number} id - ID inicial para inserção
+     */
+    telaDerrota(id){
+        this.entidades[id++] = new Texto(id, [this.largura/2 - 3, this.altura/2], [4, 8], "derrota");
+        this.entidades[id++] = new Texto(id, [this.largura/2 - 2, this.altura/2], [5, 8], "derrota");
+        this.entidades[id++] = new Texto(id, [this.largura/2 - 1, this.altura/2], [6, 8], "derrota");
+        this.entidades[id++] = new Texto(id, [this.largura/2 - 0, this.altura/2], [7, 8], "derrota");
+        this.entidades[id++] = new Texto(id, [this.largura/2 + 1, this.altura/2], [8, 8], "derrota");
+        this.entidades[id++] = new Texto(id, [this.largura/2 + 2, this.altura/2], [9, 8], "derrota");
     }
 
+    /**
+     * Remove todos os textos com um determinado código coletivo
+     * 
+     * @param {string} codColetivo - Identificador dos textos a serem removidos
+     */
     apagarTexto(codColetivo){
         for (const entidade of Object.values(this.entidades)){
             if(entidade.tipo == "texto") if(entidade.codColetivo == codColetivo) delete this.entidades[entidade.id];
         }
     }
 
+    /**
+     * Constrói uma entidade com base em um objeto de configuração
+     * 
+     * @param {Object} params - Parâmetros da entidade
+     * @param {number} params.id - ID inicial (opcional)
+     * @param {string} params.tipo - Tipo da entidade ('p', 'e', 'f', etc.)
+     * @param {Array<number>} params.pos - Posição [x, y]
+     * @param {number} params.casa - Usado para pontuação (exibição numérica)
+     * @param {number} params.valor - Valor associado (ex: número do nível ou pontuação)
+     * @param {string} params.codColetivo - Identificador de grupo (usado em textos)
+     */
     contruirEntidade({
         id = 0,
         tipo,
         pos,
-        jogador,
         casa,
         valor = 0,
         codColetivo = ""
     }){
         while(this.entidades[id] != null) id++;
-        
-        console.log("tentando criar " + tipo);
+        //console.log("tentando criar " + tipo);
         if(tipo === 'p') {
             this.jogador = new Jogador();
             return this.jogador;
@@ -591,10 +741,11 @@ export class CaixaDeEntidades {
         if(tipo === 'h') this.entidades[id] =  new InimigoH(id, pos, this.altura, this.largura, this.entidades);
         if(tipo === 'j') this.entidades[id] =  new InimigoJ(id, pos, this.largura, this.entidades, this.jogador);
         if(tipo == "numero") this.entidades[id] =  new Pontuacao(id, pos, casa, valor)
-        if(tipo == "esconderNivel") this.esconderTelaNivel(this.entidades);
-        if(tipo == "nivel") this.mostrarTelaNivel(id, this.entidades, valor, this.largura, this.altura);
-        if(tipo == "derrota") this.telaDerrota(id, this.entidades, this.largura, this.altura);
+        if(tipo == "esconderNivel") this.esconderTelaNivel();
+        if(tipo == "nivel") this.mostrarTelaNivel(id, valor);
+        if(tipo == "derrota") this.telaDerrota(id);
         if(tipo == "texto") this.entidades[id] =  new Texto(id, pos, [0,0], codColetivo);
         if(tipo == "apagar") this.apagarTexto(codColetivo);
+        if(tipo == 'r') this.entidades[id] = new InimigoR(id, pos, this.largura, this.altura, this.jogador)
     }
 }

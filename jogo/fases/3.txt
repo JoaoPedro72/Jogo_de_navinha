@@ -20,8 +20,8 @@
 #                                  #
 #                                  #
 #          g           g           #
-#  f e e e e e e f e e e e e e f   #
-#   e e e f e e e e e e e f e e e  #
+#  f e e r e e e f e r e e r e f   #
+#   e r e f e r r r r e e f e r e  #
 #    g     h   h h h     h     g   #
 #       j                   j      #
 ####################################

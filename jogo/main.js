@@ -40,7 +40,7 @@ function getMousePos(canvas, evt) {
 let logoAntes = 0;
 let segundos = 4.0;
 let frames = 0;
-let frameRate = 31;
+let frameRate = 32;
 let pause = true;
 let toglePause = false;
 let inimigosRestantes = 1;
@@ -113,6 +113,10 @@ async function update_screen(agora) {
 
 // inicializa o WebGL2
 const canvas = document.querySelector('.example-canvas');
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight - 20;
+
 const gl = canvas.getContext('webgl2');
 
 if (!gl) {
