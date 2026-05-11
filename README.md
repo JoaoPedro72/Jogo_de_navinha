@@ -1,6 +1,9 @@
 # *Inicio de um jogo de estilo navinha como parte de um trabalho da Materia de Computação Grafica!*
   O objetivo e tentar recriar algo proximo do jogo Galaxian do Atari
 
+## membros:
+João Pedro da Silva Alves 
+Gabriel Jovenal de Paula
 ## [JOGAR](https://joaopedro72.github.io/Jogo_de_navinha/jogo/tela.html)
 
 ## O que esta pronto
